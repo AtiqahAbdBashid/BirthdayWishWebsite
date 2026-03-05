@@ -53,18 +53,15 @@ export default function ChangePasswordPage() {
             const data = await res.json();
 
             if (data.success) {
-                setSuccess('Password changed successfully!');
+                setSuccess(data.message || 'Password changed successfully!');
                 setCurrentPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
 
-                // Update session storage with password changed note
-                sessionStorage.setItem('passwordChanged', 'true');
-
-                // Redirect to dashboard after 2 seconds
+                // Don't redirect immediately - let them read the message
                 setTimeout(() => {
                     router.push('/dashboard');
-                }, 2000);
+                }, 5000); // 5 seconds to read the message
             } else {
                 setError(data.error || 'Failed to change password');
             }
