@@ -27,7 +27,9 @@ export default function BirthdayAnimation({ name }: Props) {
     }, []);
 
     return (
+
         <div className="relative">
+
             <motion.h1
                 className="text-6xl md:text-7xl font-bold mb-4 relative"
                 initial={{ scale: 0.5, opacity: 0 }}
@@ -69,6 +71,7 @@ export default function BirthdayAnimation({ name }: Props) {
                 </motion.span>
             </motion.h1>
 
+
             {/* Decorative balloons */}
             <div className="flex justify-center gap-4 mt-4">
                 {['🎈', '🎈', '🎈'].map((balloon, i) => (
@@ -89,6 +92,34 @@ export default function BirthdayAnimation({ name }: Props) {
                     </motion.span>
                 ))}
             </div>
+
+            {/* Floating Balloons */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {[...Array(6)].map((_, i) => (
+                    <motion.div
+                        key={i}
+                        className="absolute text-4xl"
+                        initial={{
+                            x: Math.random() * window.innerWidth,
+                            y: window.innerHeight + 100
+                        }}
+                        animate={{
+                            y: -100,
+                            x: Math.random() * window.innerWidth
+                        }}
+                        transition={{
+                            duration: 10 + Math.random() * 10,
+                            repeat: Infinity,
+                            delay: i * 2
+                        }}
+                    >
+                        {['🎈', '🎈', '🎈', '🎈', '🎈', '🎈'][i]}
+                    </motion.div>
+                ))}
+
+            </div>
+
+
         </div>
     );
 }

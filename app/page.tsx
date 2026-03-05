@@ -22,7 +22,8 @@ export default function HomePage() {
       }}
     >
       {/* Semi-transparent overlay for better text readability */}
-      <div className="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+      {/* Semi-transparent overlay - fixed to cover entire viewport */}
+      <div className="fixed inset-0 bg-white/30 backdrop-blur-sm pointer-events-none"></div>
 
       <div className="relative z-10 text-center p-8 max-w-2xl mx-auto">
         {/* Animated Birthday Text */}
@@ -38,7 +39,7 @@ export default function HomePage() {
                      w-full max-w-md mx-auto block"
           style={{ backgroundColor: '#FFD1DC' }}
         >
-          🎁 Click For The Surprise 🎁
+          🎁 Open Your Surprise 🎁
         </button>
 
         {/* Small underlined text */}
@@ -47,7 +48,7 @@ export default function HomePage() {
           className="block mt-4 text-sm text-gray-600 underline hover:text-pastel-pink transition-colors"
           style={{ fontSize: '0.875rem' }}
         >
-          Send wishes instead
+          Send birthday wishes to Lynda
         </Link>
       </div>
 

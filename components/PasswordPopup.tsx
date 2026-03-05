@@ -59,7 +59,7 @@ export default function PasswordPopup({ onClose }: Props) {
                     <X size={24} />
                 </button>
 
-                <h2 className="text-3xl font-bold mb-2 text-center" style={{ color: '#FFD1DC' }}>
+                <h2 className="text-3xl font-bold mb-2 text-center" style={{ color: '#cb7d8fff' }}>
                     🎀  Secret Surprise  🎀
                 </h2>
                 <p className="text-center text-gray-600 mb-6">
@@ -74,8 +74,8 @@ export default function PasswordPopup({ onClose }: Props) {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Enter password..."
                             className="w-full px-4 py-3 border-2 rounded-xl 
-                       focus:outline-none focus:border-pastel-pink text-center text-lg
-                       transition-colors"
+               focus:outline-none focus:border-pastel-pink text-center text-lg
+               transition-colors placeholder:text-gray-600 text-gray-800"
                             style={{ borderColor: '#A7C7E7' }}
                             autoFocus
                         />
@@ -91,7 +91,7 @@ export default function PasswordPopup({ onClose }: Props) {
                         className="w-full py-3 rounded-xl text-white font-bold text-lg
                      transition-all transform hover:scale-105 disabled:opacity-50
                      disabled:hover:scale-100"
-                        style={{ backgroundColor: '#FFD1DC' }}
+                        style={{ backgroundColor: '#cb7d8fff' }}
                     >
                         {loading ? 'Checking...' : '✨ Open Surprise ✨'}
                     </button>
