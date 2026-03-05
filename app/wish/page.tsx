@@ -1,0 +1,651 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { createClient, getSessionId } from '@/lib/supabase/client';
+import { Camera, Upload, X, Edit2, Trash2, Save, ArrowLeft, Video, StopCircle } from 'lucide-react';
+import Link from 'next/link';
+
+type WishType = 'text' | 'image' | 'video';
+type Wish = {
+    id: string;
+    name: string;
+    type: WishType;
+    message: string | null;
+    file_url: string | null;
+    created_at: string;
+};
+
+export default function WishPage() {
+    const [step, setStep] = useState<'form' | 'preview'>('form');
+    const [name, setName] = useState('');
+    const [message, setMessage] = useState('');
+    const [wishType, setWishType] = useState<WishType>('text');
+    const [file, setFile] = useState<File | null>(null);
+    const [filePreview, setFilePreview] = useState<string>('');
+    const [loading, setLoading] = useState(false);
+    const [myWish, setMyWish] = useState<Wish | null>(null);
+    const [editing, setEditing] = useState(false);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
+
+    // Camera recording states
+    const [showCamera, setShowCamera] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordedVideo, setRecordedVideo] = useState<Blob | null>(null);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
+    const cameraVideoRef = useRef<HTMLVideoElement>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const recordedChunksRef = useRef<BlobPart[]>([]);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    const supabase = createClient();
+
+    // Load user's existing wish on mount
+    useEffect(() => {
+        loadMyWish();
+    }, []);
+
+    // Cleanup camera on unmount
+    useEffect(() => {
+        return () => {
+            stopCamera();
+        };
+    }, []);
+
+    const loadMyWish = async () => {
+        try {
+            const sessionId = getSessionId();
+            console.log('Loading wish for session:', sessionId);
+
+            const { data, error } = await supabase
+                .from('wishes')
+                .select('*')
+                .eq('user_session_id', sessionId);
+
+            console.log('Load result:', { data, error });
+
+            if (error) {
+                console.error('Error loading wish:', error);
+                return;
+            }
+
+            // Check if we have any wishes
+            if (data && data.length > 0) {
+                // User has an existing wish
+                const existingWish = data[0] as Wish;
+                console.log('Found existing wish:', existingWish);
+                setMyWish(existingWish);
+                setStep('preview');
+            } else {
+                // No existing wish, stay in form mode
+                console.log('No existing wish found');
+                setMyWish(null);
+                setStep('form');
+            }
+        } catch (error) {
+            console.error('Error in loadMyWish:', error);
+        }
+    };
+
+    // Camera functions
+    const startCamera = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true
+            });
+            setCameraStream(stream);
+            setShowCamera(true);
+
+            // Wait for video element to be ready
+            setTimeout(() => {
+                if (cameraVideoRef.current) {
+                    cameraVideoRef.current.srcObject = stream;
+                }
+            }, 100);
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            alert('Could not access camera. Please make sure you have given permission.');
+        }
+    };
+
+    const stopCamera = () => {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            setCameraStream(null);
+        }
+        setShowCamera(false);
+        setIsRecording(false);
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+        }
+        setRecordingTime(0);
+    };
+
+    const startRecording = () => {
+        if (!cameraStream) return;
+
+        recordedChunksRef.current = [];
+        const mediaRecorder = new MediaRecorder(cameraStream, {
+            mimeType: 'video/webm'
+        });
+
+        mediaRecorderRef.current = mediaRecorder;
+
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                recordedChunksRef.current.push(event.data);
+            }
+        };
+
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+
+            // Check file size (max 5MB)
+            if (blob.size > 5 * 1024 * 1024) {
+                alert('Recording is too big! Please record a shorter video (max 5MB).');
+                return;
+            }
+
+            setRecordedVideo(blob);
+
+            // Create file from blob
+            const fileName = `recording-${Date.now()}.webm`;
+            const videoFile = new File([blob], fileName, { type: 'video/webm' });
+            setFile(videoFile);
+
+            // Create preview URL
+            const url = URL.createObjectURL(blob);
+            setFilePreview(url);
+
+            // Stop camera
+            stopCamera();
+        };
+
+        // Start recording
+        mediaRecorder.start();
+        setIsRecording(true);
+
+        // Start timer
+        let seconds = 0;
+        timerRef.current = setInterval(() => {
+            seconds++;
+            setRecordingTime(seconds);
+
+            // Auto-stop after 30 seconds to prevent huge files
+            if (seconds >= 30) {
+                stopRecording();
+            }
+        }, 1000);
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        }
+    };
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Check file size (max 5MB for videos, 2MB for images)
+        const maxSize = wishType === 'video' ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert(`File too big! Max size: ${maxSize / 1024 / 1024}MB`);
+            return;
+        }
+
+        setFile(file);
+        setFilePreview(URL.createObjectURL(file));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name.trim()) {
+            alert('Please enter your name!');
+            return;
+        }
+
+        if (wishType === 'text' && !message.trim()) {
+            alert('Please enter your message!');
+            return;
+        }
+
+        setLoading(true);
+        setSubmitSuccess(false);
+
+        try {
+            const sessionId = getSessionId();
+            let fileUrl = '';
+
+            // Upload file if exists
+            if (file) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${sessionId}-${Date.now()}.${fileExt}`;
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('wish-media')
+                    .upload(fileName, file);
+
+                if (uploadError) {
+                    console.error('Upload error:', uploadError);
+                    alert('Failed to upload file. Please try again.');
+                    setLoading(false);
+                    return;
+                }
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('wish-media')
+                    .getPublicUrl(fileName);
+
+                fileUrl = publicUrl;
+            }
+
+            // Save wish to database
+            const wishData = {
+                name: name.trim(),
+                type: wishType,
+                message: message.trim() || null,
+                file_url: fileUrl || null,
+                user_session_id: sessionId,
+            };
+
+            console.log('Saving wish:', wishData);
+
+            let result;
+            if (editing && myWish) {
+                // Update existing wish
+                result = await supabase
+                    .from('wishes')
+                    .update(wishData)
+                    .eq('id', myWish.id);
+            } else {
+                // Insert new wish
+                result = await supabase
+                    .from('wishes')
+                    .insert([wishData]);
+            }
+
+            const { error } = result;
+            if (error) {
+                console.error('Database error:', error);
+                alert('Failed to save wish. Please try again.');
+                setLoading(false);
+                return;
+            }
+
+            console.log('Wish saved successfully');
+            setSubmitSuccess(true);
+
+            // Reload the wish to show preview
+            await loadMyWish();
+
+        } catch (error) {
+            console.error('Error saving wish:', error);
+            alert('Failed to save wish. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!confirm('Are you sure you want to delete your wish?')) return;
+
+        setLoading(true);
+        try {
+            const { error } = await supabase
+                .from('wishes')
+                .delete()
+                .eq('id', myWish?.id);
+
+            if (error) {
+                console.error('Delete error:', error);
+                alert('Failed to delete wish');
+                setLoading(false);
+                return;
+            }
+
+            // Reset form
+            setMyWish(null);
+            setName('');
+            setMessage('');
+            setFile(null);
+            setFilePreview('');
+            setWishType('text');
+            setEditing(false);
+            setStep('form');
+
+        } catch (error) {
+            console.error('Error deleting wish:', error);
+            alert('Failed to delete wish');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const startEditing = () => {
+        if (myWish) {
+            setName(myWish.name);
+            setMessage(myWish.message || '');
+            setWishType(myWish.type);
+            // If there was a file, we can't restore it easily, so just indicate we're editing
+            setFile(null);
+            setFilePreview('');
+            setEditing(true);
+            setStep('form');
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-pastel-pink/20 via-pastel-blue/20 to-pastel-yellow/20 p-4">
+            <div className="max-w-2xl mx-auto pt-8">
+                {/* Back to home link */}
+                <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 text-gray-600 hover:text-pastel-pink mb-6 transition-colors"
+                >
+                    <ArrowLeft size={20} />
+                    Back to Home
+                </Link>
+
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8">
+                    <h1 className="text-3xl md:text-4xl font-bold text-center mb-2" style={{ color: '#d45673ff' }}>
+                        Send Your Wish 🎂
+                    </h1>
+                    <p className="text-center text-gray-600 mb-8">
+                        Send Lynda a birthday message, photo, or short video!
+                    </p>
+
+                    {step === 'form' && (
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Name Input */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Your Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition-colors"
+                                    style={{ borderColor: '#A7C7E7', color: '#d45673ff' }}
+                                    placeholder="Enter your name"
+                                    required
+                                />
+                            </div>
+
+                            {/* Wish Type Selector */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Choose how to wish
+                                </label>
+                                <div className="flex flex-wrap gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setWishType('text')}
+                                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all ${wishType === 'text'
+                                            ? 'border-pastel-pink bg-pastel-pink/10'
+                                            : 'border-gray-200 hover:border-pastel-blue'
+                                            }`}
+                                    >
+                                        💬 Text
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setWishType('image')}
+                                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all ${wishType === 'image'
+                                            ? 'border-pastel-pink bg-pastel-pink/10'
+                                            : 'border-gray-200 hover:border-pastel-blue'
+                                            }`}
+                                    >
+                                        🖼️ Image
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setWishType('video')}
+                                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all ${wishType === 'video'
+                                            ? 'border-pastel-pink bg-pastel-pink/10'
+                                            : 'border-gray-200 hover:border-pastel-blue'
+                                            }`}
+                                    >
+                                        🎥 Video
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* File Upload for Image/Video */}
+                            {(wishType === 'image' || wishType === 'video') && !showCamera && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {wishType === 'video' ? 'Upload or Record Video (max 5MB)' : 'Upload Image (max 2MB)'}
+                                    </label>
+
+                                    {/* Camera recording option for video */}
+                                    {wishType === 'video' && (
+                                        <button
+                                            type="button"
+                                            onClick={startCamera}
+                                            className="w-full mb-3 py-3 rounded-xl border-2 border-pastel-blue text-pastel-blue flex items-center justify-center gap-2 hover:bg-pastel-blue/10 transition-colors"
+                                        >
+                                            <Video size={20} />
+                                            Record video with camera
+                                        </button>
+                                    )}
+
+                                    <div
+                                        onClick={() => wishType === 'video' ? videoInputRef.current?.click() : fileInputRef.current?.click()}
+                                        className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:border-pastel-pink transition-colors"
+                                        style={{ borderColor: '#A7C7E7' }}
+                                    >
+                                        {filePreview ? (
+                                            <div className="relative">
+                                                {wishType === 'image' ? (
+                                                    <img src={filePreview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
+                                                ) : (
+                                                    <video src={filePreview} className="max-h-48 mx-auto rounded-lg" controls />
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFile(null);
+                                                        setFilePreview('');
+                                                        setRecordedVideo(null);
+                                                    }}
+                                                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <Upload className="mx-auto mb-2" size={32} style={{ color: '#A7C7E7' }} />
+                                                <p className="text-gray-600">
+                                                    Click to upload {wishType === 'video' ? 'video' : 'image'}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input
+                                        ref={wishType === 'video' ? videoInputRef : fileInputRef}
+                                        type="file"
+                                        accept={wishType === 'video' ? 'video/*' : 'image/*'}
+                                        onChange={handleFileSelect}
+                                        className="hidden"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Camera Recording Interface */}
+                            {showCamera && (
+                                <div className="border-2 rounded-xl p-4" style={{ borderColor: '#A7C7E7' }}>
+                                    <h3 className="text-lg font-semibold mb-3 text-center" style={{ color: '#FFD1DC' }}>
+                                        Record Your Video Message
+                                    </h3>
+
+                                    <div className="relative">
+                                        <video
+                                            ref={cameraVideoRef}
+                                            autoPlay
+                                            playsInline
+                                            muted
+                                            className="w-full rounded-lg bg-black"
+                                        />
+
+                                        {isRecording && (
+                                            <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full flex items-center gap-2">
+                                                <span className="animate-pulse">●</span>
+                                                {formatTime(recordingTime)}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex justify-center gap-4 mt-4">
+                                        {!isRecording ? (
+                                            <button
+                                                type="button"
+                                                onClick={startRecording}
+                                                className="px-6 py-3 rounded-full bg-red-500 text-white flex items-center gap-2 hover:bg-red-600 transition-colors"
+                                            >
+                                                <Video size={20} />
+                                                Start Recording
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={stopRecording}
+                                                className="px-6 py-3 rounded-full bg-gray-700 text-white flex items-center gap-2 hover:bg-gray-800 transition-colors"
+                                            >
+                                                <StopCircle size={20} />
+                                                Stop Recording
+                                            </button>
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            onClick={stopCamera}
+                                            className="px-6 py-3 rounded-full border-2 border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+
+                                    <p className="text-xs text-center mt-3 text-gray-500">
+                                        Max 30 seconds recording time to keep file size small
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Message Input */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Your Message {wishType === 'text' ? '*' : '(Optional)'}
+                                </label>
+                                <textarea
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    rows={4}
+                                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition-colors"
+                                    style={{ borderColor: '#A7C7E7', color: '#d45673ff' }}
+                                    placeholder={wishType === 'text' ? "Write your birthday message..." : "Add a caption (optional)"}
+                                    required={wishType === 'text'}
+                                />
+                            </div>
+
+                            {/* Submit Button */}
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full py-4 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 disabled:opacity-50"
+                                style={{ backgroundColor: '#d45673ff' }}
+                            >
+                                {loading ? 'Saving...' : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
+                            </button>
+
+                            {/* Cancel edit button */}
+                            {editing && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditing(false);
+                                        setStep('preview');
+                                    }}
+                                    className="w-full py-3 rounded-xl border-2 font-medium transition-colors"
+                                    style={{ borderColor: '#A7C7E7', color: '#A7C7E7' }}
+                                >
+                                    Cancel
+                                </button>
+                            )}
+                        </form>
+                    )}
+
+                    {/* Preview Section */}
+                    {step === 'preview' && myWish && (
+                        <div className="space-y-6">
+                            <h2 className="text-2xl font-bold text-center" style={{ color: '#A7C7E7' }}>
+                                Your Wish
+                            </h2>
+
+                            <div className="bg-pastel-pink/10 rounded-xl p-6">
+                                <p className="font-semibold text-lg mb-2">{myWish.name}</p>
+                                {myWish.file_url && (
+                                    <div className="mt-4 mb-4">
+                                        {myWish.type === 'image' ? (
+                                            <img src={myWish.file_url} alt="Wish" className="max-h-64 rounded-lg mx-auto" />
+                                        ) : myWish.type === 'video' ? (
+                                            <video src={myWish.file_url} controls className="max-h-64 rounded-lg mx-auto" />
+                                        ) : null}
+                                    </div>
+                                )}
+                                {myWish.message && (
+                                    <p className="mt-4 text-gray-700">{myWish.message}</p>
+                                )}
+                            </div>
+
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={startEditing}
+                                    className="flex-1 py-3 rounded-xl border-2 flex items-center justify-center gap-2 transition-colors hover:bg-pastel-blue/10"
+                                    style={{ borderColor: '#A7C7E7', color: '#A7C7E7' }}
+                                >
+                                    <Edit2 size={20} />
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="flex-1 py-3 rounded-xl border-2 border-red-300 text-red-500 flex items-center justify-center gap-2 transition-colors hover:bg-red-50"
+                                >
+                                    <Trash2 size={20} />
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Success message but no wish (shouldn't happen, but just in case) */}
+                    {step === 'preview' && !myWish && (
+                        <div className="text-center py-8">
+                            <p className="text-xl text-gray-600">Loading your wish...</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}

@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --pastel-pink: #FFD1DC;
+    --pastel-blue: #A7C7E7;
+    --pastel-yellow: #FDFD97;
+}
+
+body {
+    color: #1f2937;
+    background: linear-gradient(135deg, rgba(255, 209, 220, 0.1), rgba(167, 199, 231, 0.1), rgba(253, 253, 151, 0.1));
+}
+
+@layer utilities {
+    .bg-pastel-pink {
+        background-color: var(--pastel-pink);
+    }
+
+    .bg-pastel-blue {
+        background-color: var(--pastel-blue);
+    }
+
+    .bg-pastel-yellow {
+        background-color: var(--pastel-yellow);
+    }
+
+    .text-pastel-pink {
+        color: var(--pastel-pink);
+    }
+
+    .text-pastel-blue {
+        color: var(--pastel-blue);
+    }
+
+    .text-pastel-yellow {
+        color: var(--pastel-yellow);
+    }
+
+    .border-pastel-pink {
+        border-color: var(--pastel-pink);
+    }
+
+    .border-pastel-blue {
+        border-color: var(--pastel-blue);
+    }
+
+    .border-pastel-yellow {
+        border-color: var(--pastel-yellow);
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--pastel-pink);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--pastel-blue);
+}
