@@ -2,10 +2,17 @@
 'use client';
 
 import { useState } from 'react';
-import BirthdayAnimation from '@/components/BirthdayAnimation';
+import dynamic from 'next/dynamic';
 import PasswordPopup from '@/components/PasswordPopup';
 import BackgroundMusic from '@/components/BackgroundMusic';
 import Link from 'next/link';
+
+// Dynamically import BirthdayAnimation with SSR disabled
+// This fixes the "window is not defined" error during build
+const BirthdayAnimation = dynamic(
+  () => import('@/components/BirthdayAnimation'),
+  { ssr: false }
+);
 
 export default function HomePage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,12 +28,11 @@ export default function HomePage() {
         backgroundColor: '#ce6e84ff', // fallback pink color
       }}
     >
-      {/* Semi-transparent overlay for better text readability */}
       {/* Semi-transparent overlay - fixed to cover entire viewport */}
       <div className="fixed inset-0 bg-white/30 backdrop-blur-sm pointer-events-none"></div>
 
       <div className="relative z-10 text-center p-8 max-w-2xl mx-auto">
-        {/* Animated Birthday Text */}
+        {/* Animated Birthday Text - Now loads only on client side */}
         <BirthdayAnimation name="Lynda" />
 
         {/* Big Clickable Button */}
