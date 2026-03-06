@@ -35,14 +35,14 @@ export default function HomePage() {
         {/* Animated Birthday Text - Now loads only on client side */}
         <BirthdayAnimation name="Lynda" />
 
-        {/* Big Clickable Button */}
+        {/* Big Clickable Button - Moderately Smaller */}
         <button
           onClick={() => setShowPassword(true)}
-          className="mt-12 px-12 py-5 bg-pastel-pink text-gray-800 text-2xl font-bold rounded-2xl shadow-xl 
-                     hover:scale-105 transform transition-all duration-300 
-                     border-4 border-white/50 backdrop-blur-sm
-                     hover:bg-pastel-yellow hover:shadow-2xl
-                     w-full max-w-md mx-auto block"
+          className="mt-12 px-4 py-4 bg-pastel-pink text-gray-800 text-xl font-bold rounded-2xl shadow-xl 
+             hover:scale-105 transform transition-all duration-300 
+             border-4 border-white/50 backdrop-blur-sm
+             hover:bg-pastel-yellow hover:shadow-2xl
+             w-full max-w-md mx-auto block"
           style={{ backgroundColor: '#FFD1DC' }}
         >
           🎁 Open Your Surprise 🎁
