@@ -1,3 +1,55 @@
+'use client';
+
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
+import { ArrowLeft, Mail, Lock, Loader2 } from 'lucide-react';
+
+// Main page component
+export default function LoginPage() {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-pastel-pink/20 via-pastel-blue/20 to-pastel-yellow/20 p-4">
+            <div className="max-w-md mx-auto pt-8">
+                <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 text-gray-600 hover:text-pastel-pink mb-6 transition-colors"
+                >
+                    <ArrowLeft size={20} />
+                    Back to Home
+                </Link>
+
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8">
+                    <h1 className="text-3xl font-bold text-center mb-2" style={{ color: '#d45673ff' }}>
+                        Welcome Back! 👋
+                    </h1>
+                    <p className="text-center text-gray-600 mb-6">
+                        Login to view and manage your birthday wishes
+                    </p>
+
+                    <Suspense fallback={
+                        <div className="flex justify-center items-center py-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pastel-pink"></div>
+                        </div>
+                    }>
+                        <LoginForm />
+                    </Suspense>
+
+                    <div className="mt-6 text-center">
+                        <Link
+                            href="/"
+                            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            Return to homepage
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Login form component
 function LoginForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -6,25 +58,37 @@ function LoginForm() {
     const [isLogin, setIsLogin] = useState(true);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+    const [showConfirmed, setShowConfirmed] = useState(false);
 
     const router = useRouter();
     const searchParams = useSearchParams();
     const redirectTo = searchParams.get('redirect') || '/wish';
     const confirmed = searchParams.get('confirmed') === 'true';
     const errorParam = searchParams.get('error');
-    const messageParam = searchParams.get('message');
     const supabase = createClient();
 
-    const [showConfirmed, setShowConfirmed] = useState(confirmed);
+    // Set confirmed message from URL
+    useEffect(() => {
+        if (confirmed) {
+            setShowConfirmed(true);
+            setTimeout(() => setShowConfirmed(false), 5000);
+        }
+    }, [confirmed]);
 
+    // Set error from URL param if present
     useEffect(() => {
         if (errorParam) {
-            setError(errorParam === 'confirmation_failed'
-                ? 'Email confirmation failed. Please try again.'
-                : 'An error occurred. Please try again.');
+            if (errorParam === 'expired') {
+                setError('expired');
+            } else if (errorParam === 'confirmation_failed') {
+                setError('confirmation_failed');
+            } else {
+                setError('unknown');
+            }
         }
     }, [errorParam]);
 
+    // Check if user is already logged in
     useEffect(() => {
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -172,19 +236,13 @@ function LoginForm() {
                             <p className="mt-1">We couldn't confirm your email. Please try signing up again.</p>
                         </div>
                     )}
-                    {error === 'server_error' && (
-                        <div>
-                            <p className="font-medium">⚠️ Server Error</p>
-                            <p className="mt-1">Something went wrong on our end. Please try again later.</p>
-                        </div>
-                    )}
                     {error === 'unknown' && (
                         <div>
                             <p className="font-medium">❓ Unknown Error</p>
                             <p className="mt-1">An unexpected error occurred. Please try again.</p>
                         </div>
                     )}
-                    {error && !['Invalid login credentials', 'Email not confirmed', 'expired', 'confirmation_failed', 'server_error', 'unknown'].includes(error) && (
+                    {error && !['Invalid login credentials', 'Email not confirmed', 'expired', 'confirmation_failed', 'unknown'].includes(error) && (
                         <p>{error}</p>
                     )}
                 </div>
