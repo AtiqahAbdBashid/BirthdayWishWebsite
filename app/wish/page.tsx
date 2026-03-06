@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { createClient, getSessionId } from '@/lib/supabase/client';
+import { createClient, getCurrentUser } from '@/lib/supabase/client';
 import { Camera, Upload, X, Edit2, Trash2, Save, ArrowLeft, Video, StopCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import BirthdayCountdown from '@/components/BirthdayCountdown';
 
 type WishType = 'text' | 'image' | 'video';
@@ -17,6 +18,7 @@ type Wish = {
 };
 
 export default function WishPage() {
+    const router = useRouter();
     const [step, setStep] = useState<'form' | 'preview'>('form');
     const [name, setName] = useState('');
     const [message, setMessage] = useState('');
@@ -29,6 +31,7 @@ export default function WishPage() {
     const [myWish, setMyWish] = useState<Wish | null>(null);
     const [editing, setEditing] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
     // Camera recording states
     const [showCamera, setShowCamera] = useState(false);
@@ -48,10 +51,20 @@ export default function WishPage() {
 
     const supabase = createClient();
 
-    // Load user's existing wish on mount
+    // Check authentication on mount
     useEffect(() => {
-        loadMyWish();
+        checkUser();
     }, []);
+
+    const checkUser = async () => {
+        const user = await getCurrentUser();
+        if (!user) {
+            router.push('/login?redirect=/wish');
+            return;
+        }
+        setCurrentUser(user);
+        loadMyWish(user.id);
+    };
 
     // Cleanup camera on unmount
     useEffect(() => {
@@ -70,15 +83,14 @@ export default function WishPage() {
         }
     }, []);
 
-    const loadMyWish = async () => {
+    const loadMyWish = async (userId: string) => {
         try {
-            const sessionId = getSessionId();
-            console.log('Loading wish for session:', sessionId);
+            console.log('Loading wish for user:', userId);
 
             const { data, error } = await supabase
                 .from('wishes')
                 .select('*')
-                .eq('user_session_id', sessionId);
+                .eq('user_id', userId);
 
             console.log('Load result:', { data, error });
 
@@ -94,6 +106,11 @@ export default function WishPage() {
                 console.log('Found existing wish:', existingWish);
                 setMyWish(existingWish);
                 setStep('preview');
+
+                // Pre-fill form if editing
+                setName(existingWish.name);
+                setMessage(existingWish.message || '');
+                setWishType(existingWish.type);
             } else {
                 // No existing wish, stay in form mode
                 console.log('No existing wish found');
@@ -440,17 +457,21 @@ export default function WishPage() {
             return;
         }
 
+        if (!currentUser) {
+            router.push('/login?redirect=/wish');
+            return;
+        }
+
         setLoading(true);
         setSubmitSuccess(false);
 
         try {
-            const sessionId = getSessionId();
             let fileUrl = '';
 
             // Upload file if exists
             if (file) {
                 const fileExt = file.name.split('.').pop();
-                const fileName = `${sessionId}-${Date.now()}.${fileExt}`;
+                const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
 
                 const { data: uploadData, error: uploadError } = await supabase.storage
                     .from('wish-media')
@@ -476,7 +497,7 @@ export default function WishPage() {
                 type: wishType,
                 message: message.trim() || null,
                 file_url: fileUrl || null,
-                user_session_id: sessionId,
+                user_id: currentUser.id,
             };
 
             console.log('Saving wish:', wishData);
@@ -487,7 +508,8 @@ export default function WishPage() {
                 result = await supabase
                     .from('wishes')
                     .update(wishData)
-                    .eq('id', myWish.id);
+                    .eq('id', myWish.id)
+                    .eq('user_id', currentUser.id); // Extra safety check
             } else {
                 // Insert new wish
                 result = await supabase
@@ -507,7 +529,7 @@ export default function WishPage() {
             setSubmitSuccess(true);
 
             // Reload the wish to show preview
-            await loadMyWish();
+            await loadMyWish(currentUser.id);
 
         } catch (error) {
             console.error('Error saving wish:', error);
@@ -519,13 +541,15 @@ export default function WishPage() {
 
     const handleDelete = async () => {
         if (!confirm('Are you sure you want to delete your wish?')) return;
+        if (!currentUser || !myWish) return;
 
         setLoading(true);
         try {
             const { error } = await supabase
                 .from('wishes')
                 .delete()
-                .eq('id', myWish?.id);
+                .eq('id', myWish.id)
+                .eq('user_id', currentUser.id); // Extra safety check
 
             if (error) {
                 console.error('Delete error:', error);
@@ -565,17 +589,35 @@ export default function WishPage() {
         }
     };
 
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/');
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-pastel-pink/20 via-pastel-blue/20 to-pastel-yellow/20 p-4">
             <div className="max-w-2xl mx-auto pt-8">
                 {/* Back to home link */}
-                <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 text-gray-600 hover:text-pastel-pink mb-6 transition-colors"
-                >
-                    <ArrowLeft size={20} />
-                    Back to Home
-                </Link>
+                <div className="flex justify-between items-center mb-6">
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 text-gray-600 hover:text-pastel-pink transition-colors"
+                    >
+                        <ArrowLeft size={20} />
+                        Back to Home
+                    </Link>
+
+                    {/* Logout button */}
+                    {currentUser && (
+                        <button
+                            onClick={handleLogout}
+                            className="text-sm text-pastel-blue hover:underline"
+                            style={{ color: '#A7C7E7' }}
+                        >
+                            Logout
+                        </button>
+                    )}
+                </div>
 
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8">
 
@@ -649,7 +691,7 @@ export default function WishPage() {
                             </div>
 
                             {/* iPhone tip for video */}
-                            {wishType === 'video' && /iPhone/i.test(navigator.userAgent) && (
+                            {wishType === 'video' && typeof window !== 'undefined' && /iPhone/i.test(navigator.userAgent) && (
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
                                     <div className="flex items-start gap-2">
                                         <span className="text-lg">📱</span>
@@ -673,7 +715,7 @@ export default function WishPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {wishType === 'video'
-                                            ? 'Upload Video (max 10MB, can cause compression error if larger)'
+                                            ? 'Upload Video (max 10MB, will compress if larger)'
                                             : 'Upload Image (max 2MB)'}
                                     </label>
 
