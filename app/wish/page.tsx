@@ -598,12 +598,14 @@ export default function WishPage() {
                     {/* Preview Section */}
                     {step === 'preview' && myWish && (
                         <div className="space-y-6">
-                            <h2 className="text-2xl font-bold text-center" style={{ color: '#A7C7E7' }}>
+                            <h2 className="text-2xl font-bold text-center" style={{ color: '#6295c8ff' }}>
                                 Your Wish
                             </h2>
 
                             <div className="bg-pastel-pink/10 rounded-xl p-6">
-                                <p className="font-semibold text-lg mb-2">{myWish.name}</p>
+                                <p className="font-semibold text-lg mb-2" style={{ color: '#d45673ff' }}>
+                                    {myWish.name}
+                                </p>
                                 {myWish.file_url && (
                                     <div className="mt-4 mb-4">
                                         {myWish.type === 'image' ? (
@@ -617,7 +619,6 @@ export default function WishPage() {
                                     <p className="mt-4 text-gray-700">{myWish.message}</p>
                                 )}
                             </div>
-
                             <div className="flex gap-4">
                                 <button
                                     onClick={startEditing}
