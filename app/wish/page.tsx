@@ -673,7 +673,7 @@ export default function WishPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {wishType === 'video'
-                                            ? 'Upload Video (max 100MB, will compress to 10MB)'
+                                            ? 'Upload Video (max 10MB, can cause compression error if larger)'
                                             : 'Upload Image (max 2MB)'}
                                     </label>
 
