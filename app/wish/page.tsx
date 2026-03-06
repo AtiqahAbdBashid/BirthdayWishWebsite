@@ -118,8 +118,8 @@ export default function WishPage() {
                     stream.addTrack(audioTracks[0]);
                 }
 
-                // Determine bitrate based on target size (aim for ~4MB for 30 sec video)
-                const targetBitrate = 1_500_000; // 1.5 Mbps
+                // Determine bitrate based on target size
+                const targetBitrate = 2_500_000; // 2.5 Mbps for better quality at 10MB
 
                 // Create MediaRecorder with compression settings
                 const mediaRecorder = new MediaRecorder(stream, {
@@ -237,8 +237,8 @@ export default function WishPage() {
             const fileName = `recording-${Date.now()}.webm`;
             let videoFile = new File([blob], fileName, { type: 'video/webm' });
 
-            // Check if compression is needed
-            if (blob.size > 10 * 1024 * 1024) {
+            // Check if compression is needed (camera videos can be up to 15MB)
+            if (blob.size > 15 * 1024 * 1024) {
                 setCompressing(true);
                 try {
                     // Save the blob to a file first
@@ -247,9 +247,13 @@ export default function WishPage() {
                     setCompressing(false);
                 } catch (error) {
                     console.error('Compression failed:', error);
-                    alert('Video compression failed. The original video may be too large.');
+                    alert('Video compression failed. Please try a shorter video (max 15MB).');
                     setCompressing(false);
+                    return;
                 }
+            } else if (blob.size > 10 * 1024 * 1024) {
+                // Between 10-15MB, warn but still accept
+                alert('Recording is between 10-15MB. It will be accepted but may take longer to upload.');
             }
 
             setRecordedVideo(blob);
@@ -273,8 +277,9 @@ export default function WishPage() {
             seconds++;
             setRecordingTime(seconds);
 
-            // Auto-stop after 30 seconds to prevent huge files
-            if (seconds >= 30) {
+            // Auto-stop after 45 seconds to prevent huge files (15MB limit)
+            if (seconds >= 45) {
+                alert('Maximum recording time reached (45 seconds). Stopping recording.');
                 stopRecording();
             }
         }, 1000);
@@ -301,10 +306,10 @@ export default function WishPage() {
         const selectedFile = e.target.files?.[0];
         if (!selectedFile) return;
 
-        // Check initial file size (allow up to 50MB for compression attempt)
-        const maxInitialSize = 50 * 1024 * 1024; // 50MB initial limit
+        // Check initial file size (allow up to 100MB for compression attempt)
+        const maxInitialSize = 100 * 1024 * 1024; // 100MB initial limit
         if (selectedFile.size > maxInitialSize) {
-            alert(`File too large! Maximum initial size is 50MB.`);
+            alert(`File too large! Maximum initial size is 100MB.`);
             return;
         }
 
@@ -321,7 +326,7 @@ export default function WishPage() {
                     setCompressing(false);
                 } catch (error) {
                     console.error('Compression failed:', error);
-                    alert('Video compression failed. Please try a shorter video.');
+                    alert('Video compression failed. Please try a shorter or smaller video (max 10MB after compression).');
                     setCompressing(false);
                     setLoading(false);
                     return;
@@ -570,7 +575,9 @@ export default function WishPage() {
                             {(wishType === 'image' || wishType === 'video') && !showCamera && (
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        {wishType === 'video' ? 'Upload or Record Video (max 50MB, will compress to 5MB)' : 'Upload Image (max 2MB)'}
+                                        {wishType === 'video'
+                                            ? 'Upload Video (max 100MB, will compress to 10MB)'
+                                            : 'Upload Image (max 2MB)'}
                                     </label>
 
                                     {/* Camera recording option for video */}
@@ -581,7 +588,7 @@ export default function WishPage() {
                                             className="w-full mb-3 py-3 rounded-xl border-2 border-pastel-blue text-pastel-blue flex items-center justify-center gap-2 hover:bg-pastel-blue/10 transition-colors"
                                         >
                                             <Video size={20} />
-                                            Record video with camera
+                                            Record video with camera (max 15MB)
                                         </button>
                                     )}
 
@@ -593,7 +600,7 @@ export default function WishPage() {
                                         {compressing ? (
                                             <div className="text-center">
                                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pastel-pink mx-auto mb-4"></div>
-                                                <p className="text-gray-600">Compressing video to fit size limit... ⏳</p>
+                                                <p className="text-gray-600">Compressing video to 10MB limit... ⏳</p>
                                                 <p className="text-xs text-gray-400 mt-2">This may take a few seconds</p>
                                             </div>
                                         ) : filePreview ? (
@@ -624,7 +631,7 @@ export default function WishPage() {
                                                 </p>
                                                 {wishType === 'video' && (
                                                     <p className="text-xs text-gray-400 mt-2">
-                                                        Large videos will be compressed automatically
+                                                        Large videos will be compressed to 10MB automatically
                                                     </p>
                                                 )}
                                             </div>
@@ -696,7 +703,7 @@ export default function WishPage() {
                                     </div>
 
                                     <p className="text-xs text-center mt-3 text-gray-500">
-                                        Max 30 seconds recording time - will compress if needed
+                                        Max 45 seconds recording • Camera videos up to 15MB • Will compress if needed
                                     </p>
                                 </div>
                             )}
@@ -724,7 +731,7 @@ export default function WishPage() {
                                 className="w-full py-4 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 disabled:opacity-50"
                                 style={{ backgroundColor: '#d45673ff' }}
                             >
-                                {loading ? 'Saving...' : compressing ? 'Compressing...' : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
+                                {loading ? 'Saving...' : compressing ? 'Compressing Video...' : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
                             </button>
 
                             {/* Cancel edit button */}
