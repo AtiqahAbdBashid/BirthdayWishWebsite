@@ -20,7 +20,8 @@ function LoginForm() {
     const searchParams = useSearchParams();
     const redirectTo = searchParams.get('redirect') || '/wish';
     const confirmed = searchParams.get('confirmed') === 'true';  // ✅ Get from URL
-    const errorParam = searchParams.get('error');  // Optional
+    const errorParam = searchParams.get('error');
+    const messageParam = searchParams.get('message');
     const supabase = createClient();
 
     const [showConfirmed, setShowConfirmed] = useState(confirmed);  // ✅ Use it here
@@ -164,19 +165,33 @@ function LoginForm() {
 
             {error && (
                 <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm">
-                    {error}
-                </div>
-            )}
-
-            {message && (
-                <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm">
-                    {message}
-                </div>
-            )}
-
-            {showConfirmed && (
-                <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm">
-                    ✓ Email confirmed successfully! You can now log in.
+                    {error === 'expired' && (
+                        <div>
+                            <p className="font-medium">🔗 Link Expired</p>
+                            <p className="mt-1">The confirmation link has expired. Please sign up again to receive a new confirmation email.</p>
+                        </div>
+                    )}
+                    {error === 'confirmation_failed' && (
+                        <div>
+                            <p className="font-medium">❌ Confirmation Failed</p>
+                            <p className="mt-1">We couldn't confirm your email. Please try signing up again.</p>
+                        </div>
+                    )}
+                    {error === 'server_error' && (
+                        <div>
+                            <p className="font-medium">⚠️ Server Error</p>
+                            <p className="mt-1">Something went wrong on our end. Please try again later.</p>
+                        </div>
+                    )}
+                    {error === 'unknown' && (
+                        <div>
+                            <p className="font-medium">❓ Unknown Error</p>
+                            <p className="mt-1">An unexpected error occurred. Please try again.</p>
+                        </div>
+                    )}
+                    {errorParam && !['expired', 'confirmation_failed', 'server_error', 'unknown'].includes(errorParam) && (
+                        <div>{errorParam}</div>
+                    )}
                 </div>
             )}
 
