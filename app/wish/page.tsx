@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient, getSessionId } from '@/lib/supabase/client';
-import { Camera, Upload, X, Edit2, Trash2, Save, ArrowLeft, Video, StopCircle } from 'lucide-react';
+import { Camera, Upload, X, Edit2, Trash2, Save, ArrowLeft, Video, StopCircle, Compress } from 'lucide-react';
 import Link from 'next/link';
 import BirthdayCountdown from '@/components/BirthdayCountdown';
 
@@ -24,6 +24,7 @@ export default function WishPage() {
     const [file, setFile] = useState<File | null>(null);
     const [filePreview, setFilePreview] = useState<string>('');
     const [loading, setLoading] = useState(false);
+    const [compressing, setCompressing] = useState(false);
     const [myWish, setMyWish] = useState<Wish | null>(null);
     const [editing, setEditing] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -91,6 +92,92 @@ export default function WishPage() {
         }
     };
 
+    // Video compression function
+    const compressVideo = async (file: File): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            // Create video element to load the file
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+            video.playsInline = true;
+            video.muted = true;
+
+            video.onloadedmetadata = () => {
+                // Create canvas to capture video frames
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                // Get stream from canvas
+                const stream = canvas.captureStream(30); // 30 fps
+
+                // Try to add audio track from original video
+                // @ts-ignore - captureStream is experimental but works
+                const videoStream = video.captureStream();
+                const audioTracks = videoStream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    stream.addTrack(audioTracks[0]);
+                }
+
+                // Determine bitrate based on target size (aim for ~4MB for 30 sec video)
+                const targetBitrate = 1_500_000; // 1.5 Mbps
+
+                // Create MediaRecorder with compression settings
+                const mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm; codecs=vp9,opus',
+                    videoBitsPerSecond: targetBitrate,
+                });
+
+                const chunks: Blob[] = [];
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        chunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const compressedBlob = new Blob(chunks, { type: 'video/webm' });
+                    const compressedFile = new File(
+                        [compressedBlob],
+                        file.name.replace(/\.[^/.]+$/, '') + '-compressed.webm',
+                        { type: 'video/webm' }
+                    );
+
+                    // Clean up
+                    URL.revokeObjectURL(video.src);
+                    resolve(compressedFile);
+                };
+
+                mediaRecorder.onerror = (err) => {
+                    console.error('MediaRecorder error:', err);
+                    reject(err);
+                };
+
+                // Start recording and playback
+                video.play();
+                mediaRecorder.start();
+
+                // Stop recording when video ends
+                video.onended = () => {
+                    mediaRecorder.stop();
+                };
+
+                // Safety timeout (max 60 seconds)
+                setTimeout(() => {
+                    if (mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                    }
+                }, 60000);
+            };
+
+            video.onerror = (err) => {
+                console.error('Video loading error:', err);
+                reject(err);
+            };
+
+            video.src = URL.createObjectURL(file);
+        });
+    };
+
     // Camera functions
     const startCamera = async () => {
         try {
@@ -143,24 +230,33 @@ export default function WishPage() {
             }
         };
 
-        mediaRecorder.onstop = () => {
+        mediaRecorder.onstop = async () => {
             const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-
-            // Check file size (max 5MB)
-            if (blob.size > 5 * 1024 * 1024) {
-                alert('Recording is too big! Please record a shorter video (max 5MB).');
-                return;
-            }
-
-            setRecordedVideo(blob);
 
             // Create file from blob
             const fileName = `recording-${Date.now()}.webm`;
-            const videoFile = new File([blob], fileName, { type: 'video/webm' });
+            let videoFile = new File([blob], fileName, { type: 'video/webm' });
+
+            // Check if compression is needed
+            if (blob.size > 10 * 1024 * 1024) {
+                setCompressing(true);
+                try {
+                    // Save the blob to a file first
+                    const tempFile = new File([blob], fileName, { type: 'video/webm' });
+                    videoFile = await compressVideo(tempFile);
+                    setCompressing(false);
+                } catch (error) {
+                    console.error('Compression failed:', error);
+                    alert('Video compression failed. The original video may be too large.');
+                    setCompressing(false);
+                }
+            }
+
+            setRecordedVideo(blob);
             setFile(videoFile);
 
             // Create preview URL
-            const url = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(videoFile);
             setFilePreview(url);
 
             // Stop camera
@@ -201,19 +297,53 @@ export default function WishPage() {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (!selectedFile) return;
 
-        // Check file size (max 5MB for videos, 2MB for images)
-        const maxSize = wishType === 'video' ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
-        if (file.size > maxSize) {
-            alert(`File too big! Max size: ${maxSize / 1024 / 1024}MB`);
+        // Check initial file size (allow up to 50MB for compression attempt)
+        const maxInitialSize = 50 * 1024 * 1024; // 50MB initial limit
+        if (selectedFile.size > maxInitialSize) {
+            alert(`File too large! Maximum initial size is 50MB.`);
             return;
         }
 
-        setFile(file);
-        setFilePreview(URL.createObjectURL(file));
+        setLoading(true);
+
+        try {
+            let processedFile = selectedFile;
+
+            // Compress video if it's a video file and larger than 5MB
+            if (wishType === 'video' && selectedFile.size > 10 * 1024 * 1024) {
+                setCompressing(true);
+                try {
+                    processedFile = await compressVideo(selectedFile);
+                    setCompressing(false);
+                } catch (error) {
+                    console.error('Compression failed:', error);
+                    alert('Video compression failed. Please try a shorter video.');
+                    setCompressing(false);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // Check final file size
+            const maxFinalSize = wishType === 'video' ? 10 * 1024 * 1024 : 2 * 1024 * 1024;
+            if (processedFile.size > maxFinalSize) {
+                alert(`File too big even after compression! Max size: ${maxFinalSize / 1024 / 1024}MB`);
+                setLoading(false);
+                return;
+            }
+
+            setFile(processedFile);
+            setFilePreview(URL.createObjectURL(processedFile));
+        } catch (error) {
+            console.error('Error processing file:', error);
+            alert('Error processing file. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -440,7 +570,7 @@ export default function WishPage() {
                             {(wishType === 'image' || wishType === 'video') && !showCamera && (
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        {wishType === 'video' ? 'Upload or Record Video (max 5MB)' : 'Upload Image (max 2MB)'}
+                                        {wishType === 'video' ? 'Upload or Record Video (max 50MB, will compress to 5MB)' : 'Upload Image (max 2MB)'}
                                     </label>
 
                                     {/* Camera recording option for video */}
@@ -456,11 +586,17 @@ export default function WishPage() {
                                     )}
 
                                     <div
-                                        onClick={() => wishType === 'video' ? videoInputRef.current?.click() : fileInputRef.current?.click()}
-                                        className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:border-pastel-pink transition-colors"
+                                        onClick={() => !loading && !compressing && (wishType === 'video' ? videoInputRef.current?.click() : fileInputRef.current?.click())}
+                                        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:border-pastel-pink transition-colors ${(loading || compressing) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         style={{ borderColor: '#A7C7E7' }}
                                     >
-                                        {filePreview ? (
+                                        {compressing ? (
+                                            <div className="text-center">
+                                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pastel-pink mx-auto mb-4"></div>
+                                                <p className="text-gray-600">Compressing video to fit size limit... ⏳</p>
+                                                <p className="text-xs text-gray-400 mt-2">This may take a few seconds</p>
+                                            </div>
+                                        ) : filePreview ? (
                                             <div className="relative">
                                                 {wishType === 'image' ? (
                                                     <img src={filePreview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
@@ -486,6 +622,11 @@ export default function WishPage() {
                                                 <p className="text-gray-600">
                                                     Click to upload {wishType === 'video' ? 'video' : 'image'}
                                                 </p>
+                                                {wishType === 'video' && (
+                                                    <p className="text-xs text-gray-400 mt-2">
+                                                        Large videos will be compressed automatically
+                                                    </p>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -495,6 +636,7 @@ export default function WishPage() {
                                         accept={wishType === 'video' ? 'video/*' : 'image/*'}
                                         onChange={handleFileSelect}
                                         className="hidden"
+                                        disabled={loading || compressing}
                                     />
                                 </div>
                             )}
@@ -554,7 +696,7 @@ export default function WishPage() {
                                     </div>
 
                                     <p className="text-xs text-center mt-3 text-gray-500">
-                                        Max 30 seconds recording time to keep file size small
+                                        Max 30 seconds recording time - will compress if needed
                                     </p>
                                 </div>
                             )}
@@ -578,11 +720,11 @@ export default function WishPage() {
                             {/* Submit Button */}
                             <button
                                 type="submit"
-                                disabled={loading}
+                                disabled={loading || compressing}
                                 className="w-full py-4 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 disabled:opacity-50"
                                 style={{ backgroundColor: '#d45673ff' }}
                             >
-                                {loading ? 'Saving...' : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
+                                {loading ? 'Saving...' : compressing ? 'Compressing...' : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
                             </button>
 
                             {/* Cancel edit button */}
