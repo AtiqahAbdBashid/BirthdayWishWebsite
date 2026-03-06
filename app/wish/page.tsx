@@ -313,7 +313,7 @@ export default function WishPage() {
         try {
             let processedFile = selectedFile;
 
-            // Compress video if it's a video file and larger than 5MB
+            // Compress video if it's a video file and larger than 10MB
             if (wishType === 'video' && selectedFile.size > 10 * 1024 * 1024) {
                 setCompressing(true);
                 try {
