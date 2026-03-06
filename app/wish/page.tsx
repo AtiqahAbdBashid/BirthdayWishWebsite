@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient, getSessionId } from '@/lib/supabase/client';
-import { Camera, Upload, X, Edit2, Trash2, Save, ArrowLeft, Video, StopCircle, Compress } from 'lucide-react';
+import { Camera, Upload, X, Edit2, Trash2, Save, ArrowLeft, Video, StopCircle } from 'lucide-react';
 import Link from 'next/link';
 import BirthdayCountdown from '@/components/BirthdayCountdown';
 
