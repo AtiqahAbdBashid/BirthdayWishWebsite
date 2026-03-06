@@ -19,7 +19,20 @@ function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const redirectTo = searchParams.get('redirect') || '/wish';
+    const confirmed = searchParams.get('confirmed') === 'true';  // ✅ Get from URL
+    const errorParam = searchParams.get('error');  // Optional
     const supabase = createClient();
+
+    const [showConfirmed, setShowConfirmed] = useState(confirmed);  // ✅ Use it here
+
+    // Optional: Set error from URL param if present
+    useEffect(() => {
+        if (errorParam) {
+            setError(errorParam === 'confirmation_failed'
+                ? 'Email confirmation failed. Please try again.'
+                : 'An error occurred. Please try again.');
+        }
+    }, [errorParam]);
 
     // Check if user is already logged in
     useEffect(() => {
@@ -158,6 +171,12 @@ function LoginForm() {
             {message && (
                 <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm">
                     {message}
+                </div>
+            )}
+
+            {showConfirmed && (
+                <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm">
+                    ✓ Email confirmed successfully! You can now log in.
                 </div>
             )}
 
