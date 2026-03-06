@@ -25,6 +25,7 @@ export default function WishPage() {
     const [filePreview, setFilePreview] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [compressing, setCompressing] = useState(false);
+    const [compressionProgress, setCompressionProgress] = useState(0);
     const [myWish, setMyWish] = useState<Wish | null>(null);
     const [editing, setEditing] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -92,7 +93,7 @@ export default function WishPage() {
         }
     };
 
-    // Video compression function
+    // Video compression function with fixes
     const compressVideo = async (file: File): Promise<File> => {
         return new Promise((resolve, reject) => {
             // Create video element to load the file
@@ -121,20 +122,52 @@ export default function WishPage() {
                 // Determine bitrate based on target size
                 const targetBitrate = 2_500_000; // 2.5 Mbps for better quality at 10MB
 
-                // Create MediaRecorder with compression settings
+                // Check supported MIME types
+                const mimeTypes = [
+                    'video/webm; codecs=vp9,opus',
+                    'video/webm; codecs=vp8,opus',
+                    'video/webm'
+                ];
+
+                let selectedMimeType = 'video/webm';
+                for (const mimeType of mimeTypes) {
+                    if (MediaRecorder.isTypeSupported(mimeType)) {
+                        selectedMimeType = mimeType;
+                        break;
+                    }
+                }
+
+                console.log(`Using MIME type: ${selectedMimeType}`);
+
                 const mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'video/webm; codecs=vp9,opus',
+                    mimeType: selectedMimeType,
                     videoBitsPerSecond: targetBitrate,
                 });
 
                 const chunks: Blob[] = [];
+                let chunkCount = 0;
+
                 mediaRecorder.ondataavailable = (e) => {
                     if (e.data.size > 0) {
                         chunks.push(e.data);
+                        chunkCount++;
+                        // Update progress (rough estimate based on chunks)
+                        setCompressionProgress(prev => Math.min(prev + 5, 90));
+                        console.log(`Chunk ${chunkCount} collected: ${e.data.size} bytes`);
+                    } else {
+                        console.warn('Empty chunk received');
                     }
                 };
 
                 mediaRecorder.onstop = () => {
+                    if (chunks.length === 0) {
+                        reject(new Error('No data chunks collected during compression'));
+                        return;
+                    }
+
+                    const totalSize = chunks.reduce((acc, chunk) => acc + chunk.size, 0);
+                    console.log(`Compression complete: ${chunks.length} chunks, total ${totalSize} bytes`);
+
                     const compressedBlob = new Blob(chunks, { type: 'video/webm' });
                     const compressedFile = new File(
                         [compressedBlob],
@@ -144,6 +177,8 @@ export default function WishPage() {
 
                     // Clean up
                     URL.revokeObjectURL(video.src);
+                    setCompressionProgress(100);
+                    setTimeout(() => setCompressionProgress(0), 500);
                     resolve(compressedFile);
                 };
 
@@ -152,21 +187,25 @@ export default function WishPage() {
                     reject(err);
                 };
 
-                // Start recording and playback
+                // Start recording and playback with timeslice (1 second)
                 video.play();
-                mediaRecorder.start();
+                mediaRecorder.start(1000); // Collect data every second
 
                 // Stop recording when video ends
                 video.onended = () => {
-                    mediaRecorder.stop();
-                };
-
-                // Safety timeout (max 60 seconds)
-                setTimeout(() => {
                     if (mediaRecorder.state === 'recording') {
                         mediaRecorder.stop();
                     }
-                }, 60000);
+                };
+
+                // Safety timeout based on video duration
+                const safetyTimeout = (video.duration * 1000) + 5000; // Video length + 5 seconds
+                setTimeout(() => {
+                    if (mediaRecorder.state === 'recording') {
+                        console.log('Safety timeout reached, stopping recording');
+                        mediaRecorder.stop();
+                    }
+                }, safetyTimeout);
             };
 
             video.onerror = (err) => {
@@ -178,7 +217,7 @@ export default function WishPage() {
         });
     };
 
-    // Camera functions
+    // Camera functions with fixes
     const startCamera = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -218,8 +257,24 @@ export default function WishPage() {
         if (!cameraStream) return;
 
         recordedChunksRef.current = [];
+
+        // Check supported MIME types
+        const mimeTypes = [
+            'video/webm; codecs=vp9,opus',
+            'video/webm; codecs=vp8,opus',
+            'video/webm'
+        ];
+
+        let selectedMimeType = 'video/webm';
+        for (const mimeType of mimeTypes) {
+            if (MediaRecorder.isTypeSupported(mimeType)) {
+                selectedMimeType = mimeType;
+                break;
+            }
+        }
+
         const mediaRecorder = new MediaRecorder(cameraStream, {
-            mimeType: 'video/webm'
+            mimeType: selectedMimeType
         });
 
         mediaRecorderRef.current = mediaRecorder;
@@ -227,11 +282,19 @@ export default function WishPage() {
         mediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
                 recordedChunksRef.current.push(event.data);
+                console.log(`Camera chunk collected: ${event.data.size} bytes`);
             }
         };
 
         mediaRecorder.onstop = async () => {
+            if (recordedChunksRef.current.length === 0) {
+                alert('Recording failed: No data captured. Please try again.');
+                stopCamera();
+                return;
+            }
+
             const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+            console.log(`Final recording size: ${blob.size} bytes`);
 
             // Create file from blob
             const fileName = `recording-${Date.now()}.webm`;
@@ -240,6 +303,7 @@ export default function WishPage() {
             // Check if compression is needed (camera videos can be up to 15MB)
             if (blob.size > 15 * 1024 * 1024) {
                 setCompressing(true);
+                setCompressionProgress(0);
                 try {
                     // Save the blob to a file first
                     const tempFile = new File([blob], fileName, { type: 'video/webm' });
@@ -267,8 +331,8 @@ export default function WishPage() {
             stopCamera();
         };
 
-        // Start recording
-        mediaRecorder.start();
+        // Start recording with timeslice (1 second)
+        mediaRecorder.start(1000);
         setIsRecording(true);
 
         // Start timer
@@ -321,6 +385,7 @@ export default function WishPage() {
             // Compress video if it's a video file and larger than 10MB
             if (wishType === 'video' && selectedFile.size > 10 * 1024 * 1024) {
                 setCompressing(true);
+                setCompressionProgress(0);
                 try {
                     processedFile = await compressVideo(selectedFile);
                     setCompressing(false);
@@ -600,8 +665,8 @@ export default function WishPage() {
                                         {compressing ? (
                                             <div className="text-center">
                                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pastel-pink mx-auto mb-4"></div>
-                                                <p className="text-gray-600">Compressing video to 10MB limit... ⏳</p>
-                                                <p className="text-xs text-gray-400 mt-2">This may take a few seconds</p>
+                                                <p className="text-gray-600">Compressing video... {compressionProgress}%</p>
+                                                <p className="text-xs text-gray-400 mt-2">This may take 10-30 seconds for large files</p>
                                             </div>
                                         ) : filePreview ? (
                                             <div className="relative">
@@ -731,7 +796,7 @@ export default function WishPage() {
                                 className="w-full py-4 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 disabled:opacity-50"
                                 style={{ backgroundColor: '#d45673ff' }}
                             >
-                                {loading ? 'Saving...' : compressing ? 'Compressing Video...' : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
+                                {loading ? 'Saving...' : compressing ? `Compressing... ${compressionProgress}%` : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
                             </button>
 
                             {/* Cancel edit button */}
