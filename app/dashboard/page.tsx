@@ -113,7 +113,7 @@ export default function DashboardPage() {
                 <header className="bg-white/90 backdrop-blur-sm shadow-sm sticky top-0 z-10">
                     <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                         <h1 className="text-2xl md:text-3xl font-bold" style={{ color: '#d45673ff' }}>
-                            🎂 Lynda's Birthday Wishes 🎂
+                            💌 Birthday Wishes for Lynda 💌
                         </h1>
                         <div className="flex items-center gap-3">
                             <Link
@@ -152,12 +152,12 @@ export default function DashboardPage() {
                                     A Special Message for You
                                 </h2>
                                 <p className="text-gray-700 text-lg">
-                                    Happy Birthday, Lynda! I have never done this for anyone but here is a surprise.
+                                    Happy Birthday, Lynda! I have never done this for anyone for a surprise.
                                     I want your 20th to be the most memorable because you're only 20 once.
                                     I know I am not there to be celebrating with you but I thought I'd make something you
                                     will certainly remember, and hopefully something you can keep as a memory
                                     for the rest of your life.
-                                    Here's a collection of birthday wishes from everyone who loves you.
+                                    Here's a collection of birthday wishes from everyone who appreciates you.
                                     Enjoy every single one! We love you! 💕
                                 </p>
                             </div>

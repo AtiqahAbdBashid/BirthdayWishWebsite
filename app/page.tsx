@@ -45,7 +45,7 @@ export default function HomePage() {
              w-full max-w-md mx-auto block"
           style={{ backgroundColor: '#FFD1DC' }}
         >
-          🎁 Open Your Surprise 🎁
+          Open Your Surprise
         </button>
 
         {/* Small underlined text */}
