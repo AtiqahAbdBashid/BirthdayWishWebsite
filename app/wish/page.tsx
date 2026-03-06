@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createClient, getSessionId } from '@/lib/supabase/client';
 import { Camera, Upload, X, Edit2, Trash2, Save, ArrowLeft, Video, StopCircle } from 'lucide-react';
 import Link from 'next/link';
+import BirthdayCountdown from '@/components/BirthdayCountdown';
 
 type WishType = 'text' | 'image' | 'video';
 type Wish = {
@@ -365,12 +366,18 @@ export default function WishPage() {
                 </Link>
 
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8">
+
                     <h1 className="text-3xl md:text-4xl font-bold text-center mb-2" style={{ color: '#d45673ff' }}>
                         Send Your Wish 🎂
                     </h1>
-                    <p className="text-center text-gray-600 mb-8">
+                    <p className="text-center text-gray-600 mb-2">
                         Send Lynda a birthday message, photo, or short video!
                     </p>
+
+                    {/* Birthday Countdown - Centered */}
+                    <div className="flex justify-center w-full">
+                        <BirthdayCountdown />
+                    </div>
 
                     {step === 'form' && (
                         <form onSubmit={handleSubmit} className="space-y-6">

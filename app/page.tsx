@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import PasswordPopup from '@/components/PasswordPopup';
 import BackgroundMusic from '@/components/BackgroundMusic';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 // Dynamically import BirthdayAnimation with SSR disabled
 // This fixes the "window is not defined" error during build
@@ -30,7 +31,32 @@ export default function HomePage() {
     >
       {/* Semi-transparent overlay - fixed to cover entire viewport */}
       <div className="fixed inset-0 bg-white/30 backdrop-blur-sm pointer-events-none"></div>
-
+      {/* Floating Balloons - Full Page */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-4xl md:text-5xl"
+            initial={{
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+              y: (typeof window !== 'undefined' ? window.innerHeight : 800) + 100
+            }}
+            animate={{
+              y: -200,
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+              rotate: [0, 10, -10, 0]
+            }}
+            transition={{
+              duration: 15 + Math.random() * 10,
+              repeat: Infinity,
+              delay: i * 2,
+              ease: "linear"
+            }}
+          >
+            {['🎈', '🎈', '🎈', '🎈', '🎈', '🎈', '🎈', '🎈', '🎈', '🎈', '🎈', '🎈'][i]}
+          </motion.div>
+        ))}
+      </div>
       <div className="relative z-10 text-center p-8 max-w-2xl mx-auto">
         {/* Animated Birthday Text - Now loads only on client side */}
         <BirthdayAnimation name="Lynda" />
