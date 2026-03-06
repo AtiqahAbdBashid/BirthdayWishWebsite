@@ -36,6 +36,8 @@ export default function WishPage() {
     const [recordedVideo, setRecordedVideo] = useState<Blob | null>(null);
     const [recordingTime, setRecordingTime] = useState(0);
     const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+    const [deviceType, setDeviceType] = useState<'iphone' | 'android' | 'other'>('other');
+
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +58,16 @@ export default function WishPage() {
         return () => {
             stopCamera();
         };
+    }, []);
+
+    // useEffect to detect iPhone
+    useEffect(() => {
+        const ua = navigator.userAgent;
+        if (/iPhone/i.test(ua)) {
+            setDeviceType('iphone');
+        } else if (/Android/i.test(ua)) {
+            setDeviceType('android');
+        }
     }, []);
 
     const loadMyWish = async () => {
@@ -635,6 +647,26 @@ export default function WishPage() {
                                     </button>
                                 </div>
                             </div>
+
+                            {/* iPhone tip for video */}
+                            {wishType === 'video' && /iPhone/i.test(navigator.userAgent) && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-lg">📱</span>
+                                        <div>
+                                            <p className="text-xs text-blue-700 font-medium">
+                                                iPhone users: Your videos may be large (4K default)
+                                            </p>
+                                            <p className="text-xs text-blue-600 mt-1">
+                                                For faster uploads: Settings → Camera → Record Video → select "1080p at 30fps"
+                                            </p>
+                                            <p className="text-xs text-blue-500 mt-1">
+                                                Don't worry, we'll still compress it automatically!
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* File Upload for Image/Video */}
                             {(wishType === 'image' || wishType === 'video') && !showCamera && (
