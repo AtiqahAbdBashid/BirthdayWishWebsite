@@ -177,7 +177,7 @@ export default function DashboardPage() {
                             <div className="text-sm text-gray-600">Text Messages</div>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg">
-                            <div className="text-3xl font-bold" style={{ color: '#FDFD97' }}>
+                            <div className="text-3xl font-bold" style={{ color: '#c5c56aff' }}>
                                 {wishes.filter(w => w.type === 'image' || w.type === 'video').length}
                             </div>
                             <div className="text-sm text-gray-600">Photos & Videos</div>
