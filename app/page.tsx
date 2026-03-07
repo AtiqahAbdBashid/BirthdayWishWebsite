@@ -81,6 +81,46 @@ export default function HomePage() {
     };
   }, []);
 
+  // Add this useEffect for image protection
+  useEffect(() => {
+    // Disable right-click on images
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'IMG') {
+        e.preventDefault();
+        // Optional: Show a gentle message
+        console.log('Image saving is disabled');
+      }
+    };
+
+    // Disable drag-and-drop saving
+    const handleDragStart = (e: DragEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'IMG') {
+        e.preventDefault();
+      }
+    };
+
+    // Add keyboard shortcut protection (optional)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent Ctrl+S (Save), Ctrl+Shift+I (DevTools)
+      if ((e.ctrlKey && e.key === 's') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('dragstart', handleDragStart);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('dragstart', handleDragStart);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   return (
     <main
       className="min-h-screen bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center"
@@ -114,6 +154,8 @@ export default function HomePage() {
       {/* Floating Polaroid Carousel - TRULY SEAMLESS */}
       <div className="relative z-10 w-full overflow-hidden py-2 sm:py-4 mt-0 sm:mt-2">
         <motion.div
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
           ref={carouselRef}
           className="flex gap-3 sm:gap-4"
           animate={{
@@ -151,6 +193,8 @@ export default function HomePage() {
                   src={`/images/memories/photo-${actualIndex + 1}.jpg`}
                   alt={`Memory ${actualIndex + 1}`}
                   className="w-full h-20 sm:h-24 md:h-32 object-cover rounded-md"
+                  draggable={false}
+                  onContextMenu={(e) => e.preventDefault()}
                 />
                 <p className="text-center text-xs font-medium text-gray-700 truncate px-1 opacity-0">
                   Poloroid {actualIndex + 1}
