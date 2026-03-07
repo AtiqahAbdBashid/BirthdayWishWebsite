@@ -23,6 +23,16 @@ export default function HomePage() {
   const [slideWidth, setSlideWidth] = useState(1000);
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    // Force reload if there's a version mismatch
+    const currentVersion = 'v2.0'; // Update this with each major release
+
+    if (sessionStorage.getItem('appVersion') !== currentVersion) {
+      sessionStorage.setItem('appVersion', currentVersion);
+      window.location.reload();
+    }
+  }, []);
+
   // Calculate carousel width
   useEffect(() => {
     const calculateWidth = () => {
@@ -120,6 +130,7 @@ export default function HomePage() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
 
   return (
     <main
@@ -233,7 +244,7 @@ export default function HomePage() {
             WebkitTapHighlightColor: 'transparent',
           }}
         >
-          💌 Send birthday wish to Lynda 💌
+          💌 Send a private birthday wish to Lynda 💌
         </Link>
       </div>
 

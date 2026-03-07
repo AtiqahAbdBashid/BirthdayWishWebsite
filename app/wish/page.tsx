@@ -52,6 +52,14 @@ export default function WishPage() {
 
     const supabase = createClient();
 
+    // Add this with your other useEffects
+    useEffect(() => {
+        const currentVersion = 'v2.0';
+        if (sessionStorage.getItem('appVersion') !== currentVersion) {
+            sessionStorage.setItem('appVersion', currentVersion);
+            window.location.reload();
+        }
+    }, []);
     // Check authentication on mount
     useEffect(() => {
         checkUser();
