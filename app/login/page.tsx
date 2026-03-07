@@ -140,16 +140,21 @@ function LoginForm() {
                     data: {
                         full_name: name,
                     },
+                    emailRedirectTo: `${window.location.origin}/verify?email=${encodeURIComponent(email)}`,
                 },
             });
 
             if (error) throw error;
 
-            setMessage('Check your email for confirmation link!');
+            setMessage('Check your email for the verification code!');
             setEmail('');
             setPassword('');
             setName('');
-            setTimeout(() => setIsLogin(true), 3000);
+
+            // Redirect to verify page
+            setTimeout(() => {
+                router.push(`/verify?email=${encodeURIComponent(email)}`);
+            }, 2000);
         } catch (error: any) {
             setError(error.message || 'Failed to sign up');
         } finally {

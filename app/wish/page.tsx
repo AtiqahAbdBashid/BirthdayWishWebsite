@@ -32,6 +32,7 @@ export default function WishPage() {
     const [editing, setEditing] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(null);
+    const [showVerifiedPopup, setShowVerifiedPopup] = useState(false);
 
     // Camera recording states
     const [showCamera, setShowCamera] = useState(false);
@@ -80,6 +81,21 @@ export default function WishPage() {
             setDeviceType('iphone');
         } else if (/Android/i.test(ua)) {
             setDeviceType('android');
+        }
+    }, []);
+
+    // Add this after your other useEffects
+    useEffect(() => {
+        // Check if user just verified email
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('confirmed') === 'true') {
+            setShowVerifiedPopup(true);
+            // Auto-hide after 5 seconds
+            setTimeout(() => setShowVerifiedPopup(false), 5000);
+            // Remove the parameter from URL (cleanup)
+            const url = new URL(window.location.href);
+            url.searchParams.delete('confirmed');
+            window.history.replaceState({}, '', url.toString());
         }
     }, []);
 
@@ -618,6 +634,33 @@ export default function WishPage() {
                         </button>
                     )}
                 </div>
+                {/* Verified Success Popup */}
+                {showVerifiedPopup && (
+                    <div className="fixed top-4 right-4 z-50 animate-slide-in">
+                        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-xl flex items-start gap-3 max-w-md">
+                            <div className="flex-shrink-0">
+                                <svg className="h-6 w-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            <div className="flex-1">
+                                <p className="font-bold text-green-800">Email Verified! 🎉</p>
+                                <p className="text-sm text-green-700 mt-1">
+                                    Your email has been successfully verified. You can now send your birthday wish!
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setShowVerifiedPopup(false)}
+                                className="text-green-700 hover:text-green-900"
+                                aria-label="Close"
+                            >
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8">
 
