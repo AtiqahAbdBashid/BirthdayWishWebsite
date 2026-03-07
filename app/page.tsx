@@ -80,7 +80,7 @@ export default function HomePage() {
           className="block mt-4 text-sm text-gray-600 underline hover:text-pastel-pink transition-colors"
           style={{ fontSize: '0.875rem' }}
         >
-          Send birthday wishes to Lynda
+          💌 Send birthday wishes to Lynda 💌
         </Link>
       </div>
 

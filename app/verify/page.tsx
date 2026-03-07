@@ -54,6 +54,35 @@ function VerifyForm() {
         }
     };
 
+    const handleResend = async () => {
+        if (!email) {
+            setError('Please enter your email first');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+        setMessage('');
+
+        try {
+            const { error } = await supabase.auth.resend({
+                type: 'signup',
+                email: email,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/wish`,
+                },
+            });
+
+            if (error) throw error;
+
+            setMessage('New verification code sent! Check your email.');
+        } catch (error: any) {
+            setError(error.message || 'Failed to resend code');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <form onSubmit={handleVerify} className="space-y-6">
             <div>
@@ -132,13 +161,12 @@ function VerifyForm() {
             <div className="text-center">
                 <button
                     type="button"
-                    onClick={() => {
-                        // Implement resend logic here
-                    }}
-                    className="text-sm text-pastel-blue hover:underline"
+                    onClick={handleResend}
+                    disabled={loading}
+                    className="text-sm text-pastel-blue hover:underline disabled:opacity-50"
                     style={{ color: '#3a84ceff' }}
                 >
-                    Didn't receive code? Resend
+                    {loading ? 'Sending...' : "Didn't receive code? Resend"}
                 </button>
             </div>
         </form>
