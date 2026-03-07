@@ -1,179 +1,329 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { LogOut, Heart, Film, MessageCircle, X } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '../../lib/supabase/client';
-import { ArrowLeft, Mail, CheckCircle, Loader2 } from 'lucide-react';
 
-// Separate component that uses useSearchParams
-function VerifyForm() {
-    const [email, setEmail] = useState('');
-    const [token, setToken] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
+type Wish = {
+    id: string;
+    name: string;
+    type: 'text' | 'image' | 'video';
+    message: string | null;
+    file_url: string | null;
+    created_at: string;
+};
 
+export default function DashboardPage() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [wishes, setWishes] = useState<Wish[]>([]);
+    const [activeTab, setActiveTab] = useState<'all' | 'text' | 'media'>('all');
+    // Image modal states
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImageName, setSelectedImageName] = useState<string>('');
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const emailParam = searchParams.get('email');
     const supabase = createClient();
 
     useEffect(() => {
-        if (emailParam) {
-            setEmail(emailParam);
+        // Check if user is authenticated
+        const auth = sessionStorage.getItem('lyndaAuth');
+        if (!auth) {
+            router.push('/');
+        } else {
+            setIsAuthenticated(true);
+            loadWishes();
         }
-    }, [emailParam]);
+    }, [router]);
 
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
-        setMessage('');
-
+    const loadWishes = async () => {
         try {
-            const { data, error } = await supabase.auth.verifyOtp({
-                email,
-                token,
-                type: 'email'
-            });
+            const { data, error } = await supabase
+                .from('wishes')
+                .select('*')
+                .order('created_at', { ascending: false });
 
-            if (error) throw error;
-
-            setSuccess(true);
-            setMessage('Email confirmed successfully! Redirecting...');
-
-            setTimeout(() => {
-                router.push('/wish?verified=true');
-            }, 2000);
-        } catch (error: any) {
-            setError(error.message || 'Failed to verify email');
+            if (error) {
+                console.error('Supabase error:', error);
+                alert('Error loading wishes. Please check your connection.');
+                return;
+            }
+            setWishes(data || []);
+        } catch (error) {
+            console.error('Error loading wishes:', error);
+            alert('Failed to load wishes. Check console for details.');
         } finally {
             setLoading(false);
         }
     };
 
-    return (
-        <form onSubmit={handleVerify} className="space-y-6">
-            <div>
-                <label className="block text-sm font-medium text-gray-800 mb-2">
-                    Email Address
-                </label>
-                <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:outline-none transition-colors text-gray-900"
-                        style={{ borderColor: '#A7C7E7' }}
-                        placeholder="your@email.com"
-                        required
-                        readOnly={!!emailParam}
-                    />
-                </div>
-            </div>
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        sessionStorage.removeItem('lyndaAuth');
+        router.push('/');
+    };
 
-            <div>
-                <label className="block text-sm font-medium text-gray-800 mb-2">
-                    Verification Code
-                </label>
-                <input
-                    type="text"
-                    value={token}
-                    onChange={(e) => setToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition-colors text-center text-2xl tracking-widest text-gray-900"
-                    style={{ borderColor: '#A7C7E7' }}
-                    placeholder="000000"
-                    required
-                    maxLength={6}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                    Enter the 6-digit code from your email
-                </p>
-            </div>
+    const filteredWishes = wishes.filter(wish => {
+        if (activeTab === 'all') return true;
+        if (activeTab === 'text') return wish.type === 'text';
+        if (activeTab === 'media') return wish.type === 'image' || wish.type === 'video';
+        return true;
+    });
 
-            {error && (
-                <div className="bg-red-100 border border-red-300 text-red-700 p-3 rounded-xl text-sm">
-                    {error}
-                </div>
-            )}
-
-            {message && !success && (
-                <div className="bg-green-100 border border-green-300 text-green-700 p-3 rounded-xl text-sm">
-                    {message}
-                </div>
-            )}
-
-            {success && (
-                <div className="bg-green-100 border border-green-300 text-green-700 p-3 rounded-xl text-sm">
-                    <CheckCircle className="inline mr-2" size={18} />
-                    {message}
-                </div>
-            )}
-
-            <button
-                type="submit"
-                disabled={loading || token.length !== 6}
-                className="w-full py-4 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2"
-                style={{ backgroundColor: '#d45673ff' }}
+    if (!isAuthenticated || loading) {
+        return (
+            <div
+                className="min-h-screen flex items-center justify-center"
+                style={{
+                    backgroundImage: "url('/images/background.jpg')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundColor: '#ce6e84ff',
+                }}
             >
-                {loading ? (
-                    <>
-                        <Loader2 size={20} className="animate-spin" />
-                        Verifying...
-                    </>
-                ) : (
-                    'Verify Email'
-                )}
-            </button>
+                {/* Same subtle white overlay as main page */}
+                <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]"></div>
 
-            <div className="text-center">
-                <button
-                    type="button"
-                    onClick={() => {
-                        // Implement resend logic here
-                    }}
-                    className="text-sm text-pastel-blue hover:underline"
-                    style={{ color: '#3a84ceff' }}
-                >
-                    Didn't receive code? Resend
-                </button>
-            </div>
-        </form>
-    );
-}
-
-// Main page component with Suspense
-export default function VerifyPage() {
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-pastel-pink/20 via-pastel-blue/20 to-pastel-yellow/20 p-4">
-            <div className="max-w-md mx-auto pt-8">
-                <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 text-gray-600 hover:text-pastel-pink mb-6 transition-colors"
-                >
-                    <ArrowLeft size={20} />
-                    Back to Home
-                </Link>
-
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8">
-                    <h1 className="text-3xl font-bold text-center mb-2" style={{ color: '#d45673ff' }}>
-                        Verify Your Email ✉️
-                    </h1>
-                    <p className="text-center text-gray-600 mb-6">
-                        Enter the 6-digit code sent to your email
-                    </p>
-
-                    <Suspense fallback={
-                        <div className="flex justify-center items-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pastel-pink"></div>
-                        </div>
-                    }>
-                        <VerifyForm />
-                    </Suspense>
+                {/* Loading content - positioned above the overlay */}
+                <div className="relative z-10 bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl">
+                    <div className="text-2xl animate-pulse" style={{ color: '#FFD1DC' }}>
+                        🎀 Loading Birthday Surprises... 🎀
+                    </div>
                 </div>
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className="min-h-screen"
+            style={{
+                backgroundImage: "url('/images/background.jpg')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundAttachment: 'fixed',
+                backgroundColor: '#ce6e84ff',
+            }}
+        >
+            {/* Very subtle overlay - just enough to make text readable */}
+            <div className="min-h-screen bg-white/40 backdrop-blur-[1px]">
+                {/* Header - slightly more opaque for readability */}
+                <header className="bg-white/90 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+                    <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+                        <h1 className="text-2xl md:text-3xl font-bold" style={{ color: '#d45673ff' }}>
+                            💌 Birthday Wishes for Lynda 💌
+                        </h1>
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href="/change-password"
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-pastel-pink/10 transition-colors text-sm"
+                                style={{ color: '#3a84ceff' }}
+                            >
+                                🔑 Change Password
+                            </Link>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-pastel-pink/10 transition-colors"
+                                style={{ color: '#3a84ceff' }}
+                            >
+                                <LogOut size={20} />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <main className="max-w-6xl mx-auto px-4 py-8">
+                    {/* Personal wish card - keep white for emphasis */}
+                    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 mb-8 transform hover:scale-105 transition-transform border border-white/50">
+                        <div className="flex items-center gap-6 flex-wrap md:flex-nowrap">
+                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-pastel-pink flex-shrink-0">
+                                <img
+                                    src="/images/photo.jpg"
+                                    alt="Our photo"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+
+                            <div className="flex-1">
+                                <h2 className="text-2xl font-bold mb-2" style={{ color: '#A7C7E7' }}>
+                                    A Special Message for You
+                                </h2>
+                                <p className="text-gray-700 text-lg">
+                                    Happy Birthday, Lynda! I have never done this for anyone for a surprise.
+                                    I want your 20th to be the most memorable because you're only 20 once.
+                                    I know I am not there to be celebrating with you but I thought I'd make something you
+                                    will certainly remember, and hopefully something you can keep as a memory
+                                    for the rest of your life.
+                                    Here's a collection of birthday wishes from everyone who appreciates you.
+                                    Enjoy every single one! We love you! 💕
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Stats cards - slightly transparent to show background */}
+                    <div className="grid grid-cols-3 gap-4 mb-8">
+                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg">
+                            <div className="text-3xl font-bold" style={{ color: '#d45673ff' }}>{wishes.length}</div>
+                            <div className="text-sm text-gray-600">Total Wishes</div>
+                        </div>
+                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg">
+                            <div className="text-3xl font-bold" style={{ color: '#3a84ceff' }}>
+                                {wishes.filter(w => w.type === 'text').length}
+                            </div>
+                            <div className="text-sm text-gray-600">Text Messages</div>
+                        </div>
+                        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg">
+                            <div className="text-3xl font-bold" style={{ color: '#c5c56aff' }}>
+                                {wishes.filter(w => w.type === 'image' || w.type === 'video').length}
+                            </div>
+                            <div className="text-sm text-gray-600">Photos & Videos</div>
+                        </div>
+                    </div>
+
+                    {/* Tab Navigation */}
+                    <div className="flex gap-2 mb-6 border-b-2 border-pastel-blue/20 pb-2 bg-white/30 backdrop-blur-sm p-2 rounded-t-lg">
+                        <button
+                            onClick={() => setActiveTab('all')}
+                            className={`px-4 py-2 rounded-lg transition-all ${activeTab === 'all'
+                                ? 'bg-pastel-pink text-white shadow-md'
+                                : 'hover:bg-white/50 text-gray-700'
+                                }`}
+                        >
+                            All Wishes
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('text')}
+                            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${activeTab === 'text'
+                                ? 'bg-pastel-pink text-white shadow-md'
+                                : 'hover:bg-white/50 text-gray-700'
+                                }`}
+                        >
+                            <MessageCircle size={18} />
+                            Text
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('media')}
+                            className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${activeTab === 'media'
+                                ? 'bg-pastel-pink text-white shadow-md'
+                                : 'hover:bg-white/50 text-gray-700'
+                                }`}
+                        >
+                            <Film size={18} />
+                            Photos & Videos
+                        </button>
+                    </div>
+
+                    {/* Wishes Grid */}
+                    {filteredWishes.length === 0 ? (
+                        <div className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl">
+                            <p className="text-2xl text-gray-400">No wishes yet 🎀</p>
+                            <p className="text-gray-500 mt-2">Check back soon!</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredWishes.map((wish) => (
+                                <div
+                                    key={wish.id}
+                                    className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform border border-white/50"
+                                >
+                                    <div className="p-4 bg-gradient-to-r from-pastel-pink/10 to-pastel-blue/10">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Heart size={16} style={{ color: '#FFD1DC' }} />
+                                            <span className="font-semibold text-gray-800">{wish.name}</span>
+                                        </div>
+
+                                        {/* Media Content */}
+                                        {wish.file_url && (
+                                            <div className="mb-4 rounded-lg overflow-hidden bg-gray-100">
+                                                {wish.type === 'image' ? (
+                                                    <div
+                                                        className="cursor-pointer group relative"
+                                                        onClick={() => {
+                                                            setSelectedImage(wish.file_url!);
+                                                            setSelectedImageName(`Wish from ${wish.name}`);
+                                                        }}
+                                                    >
+                                                        <img
+                                                            src={wish.file_url}
+                                                            alt={`Wish from ${wish.name}`}
+                                                            className="w-full h-48 object-cover group-hover:opacity-90 transition-opacity"
+                                                            onError={(e) => {
+                                                                e.currentTarget.src = 'https://via.placeholder.com/300x200?text=Image+not+available';
+                                                            }}
+                                                        />
+                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+                                                            <span className="bg-white text-pastel-pink px-3 py-1 rounded-full text-sm font-semibold">
+                                                                Click to enlarge 🔍
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ) : wish.type === 'video' ? (
+                                                    <video
+                                                        src={wish.file_url}
+                                                        controls
+                                                        className="w-full h-48 object-cover"
+                                                        onError={(e) => {
+                                                            console.error('Video failed to load:', wish.file_url);
+                                                        }}
+                                                    />
+                                                ) : null}
+                                            </div>
+                                        )}
+
+                                        {/* Message */}
+                                        {wish.message && (
+                                            <p className="text-gray-700 text-sm mb-3">{wish.message}</p>
+                                        )}
+
+                                        {/* Date */}
+                                        <p className="text-xs text-gray-400">
+                                            {new Date(wish.created_at).toLocaleDateString('en-US', {
+                                                month: 'long',
+                                                day: 'numeric',
+                                                year: 'numeric'
+                                            })}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Image Modal - Lightbox */}
+                    {selectedImage && (
+                        <div
+                            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300"
+                            onClick={() => setSelectedImage(null)}
+                        >
+                            <div className="relative max-w-6xl max-h-[90vh]">
+                                <img
+                                    src={selectedImage}
+                                    alt={selectedImageName}
+                                    className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                                />
+                                <button
+                                    onClick={() => setSelectedImage(null)}
+                                    className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-3 transition-all transform hover:scale-110"
+                                    aria-label="Close"
+                                >
+                                    <X size={24} className="text-white" />
+                                </button>
+                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm">
+                                    {selectedImageName}
+                                </div>
+                                <p className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-white/60 text-xs">
+                                    Click anywhere outside image to close
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </main>
             </div>
         </div>
     );
