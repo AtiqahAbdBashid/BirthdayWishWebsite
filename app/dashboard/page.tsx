@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { LogOut, Heart, Film, MessageCircle, X } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
+
+const handleLogout = async () => {
+  const supabase = createClient();
+  await supabase.auth.signOut();
+  router.push('/');
+};
 
 type Wish = {
     id: string;

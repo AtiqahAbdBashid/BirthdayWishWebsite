@@ -3,8 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, Mail, CheckCircle, Loader2 } from 'lucide-react';
+import { createClient } from '../../lib/supabase/client';
+// Keep other imports the sameimport { ArrowLeft, Mail, CheckCircle, Loader2 } from 'lucide-react';
 
 // Separate component that uses useSearchParams
 function VerifyForm() {

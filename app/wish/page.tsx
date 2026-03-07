@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { createClient, getCurrentUser } from '@/lib/supabase/client';
+import { createClient, getCurrentUser } from '../../lib/supabase/client';
 import { Camera, Upload, X, Edit2, Trash2, Save, ArrowLeft, Video, StopCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import BirthdayCountdown from '@/components/BirthdayCountdown';
+import BirthdayCountdown from '../../components/BirthdayCountdown';
 
 type WishType = 'text' | 'image' | 'video';
 type Wish = {

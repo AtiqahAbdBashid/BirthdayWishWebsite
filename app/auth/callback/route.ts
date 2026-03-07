@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-
+import { createClient } from '../../../lib/supabase/server';
+// Keep other imports the same
 export async function GET(request: NextRequest) {
     try {
         const requestUrl = new URL(request.url)
