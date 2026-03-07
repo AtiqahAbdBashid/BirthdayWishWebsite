@@ -45,7 +45,8 @@ export default function FallingPetals() {
                     number: {
                         density: {
                             enable: true,
-                            area: 800,
+                            width: 1920,
+                            height: 1080,
                         },
                         value: 40,
                     },
