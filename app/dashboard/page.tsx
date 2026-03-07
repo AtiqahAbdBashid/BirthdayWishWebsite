@@ -4,13 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogOut, Heart, Film, MessageCircle, X } from 'lucide-react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-
-const handleLogout = async () => {
-  const supabase = createClient();
-  await supabase.auth.signOut();
-  router.push('/');
-};
+import { createClient } from '../../lib/supabase/client';
 
 type Wish = {
     id: string;
@@ -64,7 +58,9 @@ export default function DashboardPage() {
         }
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
         sessionStorage.removeItem('lyndaAuth');
         router.push('/');
     };
