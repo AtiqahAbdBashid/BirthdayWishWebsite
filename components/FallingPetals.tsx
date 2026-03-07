@@ -1,95 +1,76 @@
 'use client';
 
-import { useCallback } from "react";
-import type { Container, Engine } from "@tsparticles/engine";
-import Particles from "@tsparticles/react";
+import { useEffect, useMemo, useState } from "react";
+import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
+import type { ISourceOptions } from "@tsparticles/engine";
 
 export default function FallingPetals() {
-    const particlesInit = useCallback(async (engine: Engine) => {
-        await loadSlim(engine);
+    const [init, setInit] = useState(false);
+
+    useEffect(() => {
+        initParticlesEngine(async (engine) => {
+            await loadSlim(engine);
+        }).then(() => {
+            setInit(true);
+        });
     }, []);
 
-    const particlesLoaded = useCallback(async (container: Container | undefined) => {
-        console.log("Particles loaded", container);
-    }, []);
+    const options: ISourceOptions = useMemo(
+        () => ({
+            fullScreen: { enable: false },
+            background: { color: "transparent" },
+            fpsLimit: 60,
+            particles: {
+                color: {
+                    value: ["#FFB7C5", "#FFD1DC", "#FFA5B0", "#FFF0F0", "#FFC0CB"],
+                },
+                move: {
+                    direction: "bottom-right",
+                    enable: true,
+                    outModes: "out",
+                    random: true,
+                    speed: 2,
+                    straight: false,
+                },
+                number: {
+                    density: {
+                        enable: true,
+                    },
+                    value: 40,
+                },
+                opacity: {
+                    value: 0.7,
+                },
+                shape: {
+                    type: ["circle", "heart"],
+                },
+                size: {
+                    value: { min: 3, max: 8 },
+                },
+                rotate: {
+                    value: 0,
+                    animation: {
+                        enable: true,
+                        speed: 3,
+                        sync: false
+                    }
+                },
+            },
+            detectRetina: true,
+        }),
+        [],
+    );
+
+    if (!init) {
+        return null;
+    }
 
     return (
         <Particles
             id="tsparticles"
-            init={particlesInit}
-            loaded={particlesLoaded}
-            className="absolute inset-0 -z-5 pointer-events-none"
-            options={{
-                fullScreen: { enable: false },
-                background: {
-                    color: {
-                        value: "transparent",
-                    },
-                },
-                fpsLimit: 60,
-                particles: {
-                    color: {
-                        value: ["#FFD1DC", "#FFB3BA", "#FDD0F9", "#FFFFFF", "#E6E6FA"],
-                    },
-                    move: {
-                        direction: "bottom",
-                        enable: true,
-                        outModes: {
-                            default: "out",
-                        },
-                        random: true,
-                        speed: 2,
-                        straight: false,
-                    },
-                    number: {
-                        density: {
-                            enable: true,
-                            width: 1920,
-                            height: 1080,
-                        },
-                        value: 40,
-                    },
-                    opacity: {
-                        value: 0.7,
-                        random: true,
-                        anim: {
-                            enable: true,
-                            speed: 1,
-                            opacity_min: 0.3,
-                            sync: false
-                        }
-                    },
-                    shape: {
-                        type: ["circle", "heart", "star"],
-                    },
-                    size: {
-                        value: { min: 5, max: 15 },
-                        random: true,
-                        anim: {
-                            enable: true,
-                            speed: 2,
-                            size_min: 3,
-                            sync: false
-                        }
-                    },
-                    rotate: {
-                        value: 0,
-                        direction: "clockwise",
-                        animation: {
-                            enable: true,
-                            speed: 5,
-                            sync: false
-                        }
-                    },
-                    wobble: {
-                        enable: true,
-                        distance: 10,
-                        speed: 10
-                    }
-                },
-                detectRetina: true,
-            }}
+            className="fixed inset-0 z-10 pointer-events-none"
+            options={options}
         />
     );
 }
