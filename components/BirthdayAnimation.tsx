@@ -72,12 +72,12 @@ export default function BirthdayAnimation({ name }: Props) {
             </motion.h1>
 
 
-            {/* Decorative balloons */}
+            {/* Decorative flower */}
             <div className="flex justify-center gap-4 mt-4">
-                {['🎈', '🎈', '🎈'].map((balloon, i) => (
+                {['🌸', '🌸', '🌸', '🌸', '🌸', '🌸', '🌸'].map((balloon, i) => (
                     <motion.span
                         key={i}
-                        className="text-4xl"
+                        className="text-2xl"
                         animate={{
                             y: [-10, 10, -10],
                             rotate: [-5, 5, -5]
@@ -93,7 +93,7 @@ export default function BirthdayAnimation({ name }: Props) {
                 ))}
             </div>
 
-            {/* Floating Balloons */}
+            {/* Floating Balloons 
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {[...Array(6)].map((_, i) => (
                     <motion.div
@@ -118,6 +118,7 @@ export default function BirthdayAnimation({ name }: Props) {
                 ))}
 
             </div>
+            */}
 
 
         </div>
