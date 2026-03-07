@@ -1,7 +1,7 @@
 // ⚠️ CUSTOMIZE THIS: Change the birthday message if needed
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import PasswordPopup from '@/components/PasswordPopup';
 import BackgroundMusic from '@/components/BackgroundMusic';
@@ -20,6 +20,42 @@ const BirthdayAnimation = dynamic(
 export default function HomePage() {
   const [showPassword, setShowPassword] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
+  const [slideWidth, setSlideWidth] = useState(1000);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Calculate carousel width
+  useEffect(() => {
+    const calculateWidth = () => {
+      if (carouselRef.current) {
+        const firstSet = carouselRef.current.children;
+        let totalWidth = 0;
+
+        // Sum up the widths of all items in one set (first 5 items)
+        for (let i = 0; i < 5; i++) {
+          if (firstSet[i]) {
+            totalWidth += (firstSet[i] as HTMLElement).offsetWidth;
+
+            // Add gap between items (12px on mobile, 16px on desktop)
+            if (i < 4) {
+              totalWidth += window.innerWidth < 640 ? 12 : 16;
+            }
+          }
+        }
+
+        if (totalWidth > 0) {
+          setSlideWidth(totalWidth);
+        }
+      }
+    };
+
+    // Calculate after a short delay to ensure DOM is ready
+    setTimeout(calculateWidth, 100);
+
+    // Recalculate on resize
+    window.addEventListener('resize', calculateWidth);
+
+    return () => window.removeEventListener('resize', calculateWidth);
+  }, []);
 
   useEffect(() => {
     setWindowWidth(window.innerWidth);
@@ -78,9 +114,10 @@ export default function HomePage() {
       {/* Floating Polaroid Carousel - TRULY SEAMLESS */}
       <div className="relative z-10 w-full overflow-hidden py-2 sm:py-4 mt-0 sm:mt-2">
         <motion.div
+          ref={carouselRef}
           className="flex gap-3 sm:gap-4"
           animate={{
-            x: [0, -1000], // Animate from start to end
+            x: [0, -slideWidth], // Animate exactly one set width
           }}
           transition={{
             x: {
@@ -95,9 +132,9 @@ export default function HomePage() {
             willChange: 'transform',
           }}
         >
-          {/* Render TWO sets of polaroids for seamless loop */}
-          {[...Array(10)].map((_, index) => { // 10 items = 2 sets of 5
-            const actualIndex = index % 5; // Cycles through 0-4
+          {/* Render THREE sets of polaroids for extra smooth loop */}
+          {[...Array(15)].map((_, index) => { // 15 items = 3 sets of 5
+            const actualIndex = index % 5;
             return (
               <motion.div
                 key={index}
@@ -110,7 +147,6 @@ export default function HomePage() {
                 whileHover={{ rotate: 0, y: -8 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {/* With this actual image: */}
                 <img
                   src={`/images/memories/photo-${actualIndex + 1}.jpg`}
                   alt={`Memory ${actualIndex + 1}`}
@@ -127,7 +163,6 @@ export default function HomePage() {
           })}
         </motion.div>
       </div>
-
 
       {/* Button Container */}
       <div className="relative z-10 text-center p-8 max-w-2xl mx-auto w-full">
