@@ -988,7 +988,7 @@ export default function WishPage() {
 
                                 <button
                                     type="button"
-                                    onClick={() => handleDelete()}  // No parameter - uses myWish.id
+                                    onClick={() => handleDelete()}
                                     disabled={loading}
                                     className="px-6 py-4 rounded-xl bg-red-500 text-white font-bold text-lg transition-all transform hover:scale-105 hover:bg-red-600 disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
