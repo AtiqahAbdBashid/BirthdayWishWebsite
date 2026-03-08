@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BirthdayCountdown from '../../components/BirthdayCountdown';
 
+
 type WishType = 'text' | 'image' | 'video';
 type Wish = {
     id: string;
@@ -33,6 +34,10 @@ export default function WishPage() {
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [showVerifiedPopup, setShowVerifiedPopup] = useState(false);
+    const [userWishes, setUserWishes] = useState<Wish[]>([]);
+    const [allWishes, setAllWishes] = useState<Wish[]>([]);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImageName, setSelectedImageName] = useState<string>('');
 
     // Camera recording states
     const [showCamera, setShowCamera] = useState(false);
@@ -54,7 +59,7 @@ export default function WishPage() {
 
     // Add this with your other useEffects
     useEffect(() => {
-        const currentVersion = 'v2.1';
+        const currentVersion = 'v2.2';
         if (sessionStorage.getItem('appVersion') !== currentVersion) {
             sessionStorage.setItem('appVersion', currentVersion);
             window.location.reload();
@@ -107,37 +112,39 @@ export default function WishPage() {
         }
     }, []);
 
-    const loadMyWish = async (userId: string) => {
+    const loadMyWish = async () => {
         try {
-            console.log('Loading wish for user:', userId);
+            const user = await getCurrentUser();
+            if (!user) {
+                router.push('/login?redirect=/wish');
+                return;
+            }
+
+            console.log('Loading wishes for user:', user.id);
 
             const { data, error } = await supabase
                 .from('wishes')
                 .select('*')
-                .eq('user_id', userId);
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
 
             console.log('Load result:', { data, error });
 
             if (error) {
-                console.error('Error loading wish:', error);
+                console.error('Error loading wishes:', error);
                 return;
             }
 
-            // Check if we have any wishes
-            if (data && data.length > 0) {
-                // User has an existing wish
-                const existingWish = data[0] as Wish;
-                console.log('Found existing wish:', existingWish);
-                setMyWish(existingWish);
-                setStep('preview');
+            // Set all user wishes
+            setAllWishes(data || []);
+            setUserWishes(data || []);
 
-                // Pre-fill form if editing
-                setName(existingWish.name);
-                setMessage(existingWish.message || '');
-                setWishType(existingWish.type);
+            // If there's at least one wish, show preview
+            if (data && data.length > 0) {
+                setMyWish(data[0]);
+                setStep('preview');
             } else {
-                // No existing wish, stay in form mode
-                console.log('No existing wish found');
+                // No wishes, show form
                 setMyWish(null);
                 setStep('form');
             }
@@ -145,6 +152,7 @@ export default function WishPage() {
             console.error('Error in loadMyWish:', error);
         }
     };
+
 
     // Video compression function with fixes
     const compressVideo = async (file: File): Promise<File> => {
@@ -563,17 +571,17 @@ export default function WishPage() {
         }
     };
 
-    const handleDelete = async () => {
+    const handleDelete = async (wishId: string) => {
         if (!confirm('Are you sure you want to delete your wish?')) return;
-        if (!currentUser || !myWish) return;
+        if (!currentUser) return;
 
         setLoading(true);
         try {
             const { error } = await supabase
                 .from('wishes')
                 .delete()
-                .eq('id', myWish.id)
-                .eq('user_id', currentUser.id); // Extra safety check
+                .eq('id', wishId)
+                .eq('user_id', currentUser.id);
 
             if (error) {
                 console.error('Delete error:', error);
@@ -582,15 +590,37 @@ export default function WishPage() {
                 return;
             }
 
-            // Reset form
-            setMyWish(null);
-            setName('');
-            setMessage('');
-            setFile(null);
-            setFilePreview('');
-            setWishType('text');
-            setEditing(false);
-            setStep('form');
+            // Refresh the wish list from database
+            const { data: updatedWishes, error: fetchError } = await supabase
+                .from('wishes')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (fetchError) {
+                console.error('Error refreshing wishes:', fetchError);
+            } else {
+                // Update all wishes state
+                setAllWishes(updatedWishes || []);
+                setUserWishes(updatedWishes || []);
+
+                // If there are still wishes, show preview
+                if (updatedWishes && updatedWishes.length > 0) {
+                    setMyWish(updatedWishes[0]);
+                    setStep('preview');
+                } else {
+                    // No wishes left, reset to form
+                    setMyWish(null);
+                    setStep('form');
+                    // Reset all form fields
+                    setName('');
+                    setMessage('');
+                    setFile(null);
+                    setFilePreview('');
+                    setWishType('text');
+                    setEditing(false);
+                }
+            }
 
         } catch (error) {
             console.error('Error deleting wish:', error);
@@ -914,15 +944,31 @@ export default function WishPage() {
                                 />
                             </div>
 
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                disabled={loading || compressing}
-                                className="w-full py-4 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 disabled:opacity-50"
-                                style={{ backgroundColor: '#d45673ff' }}
-                            >
-                                {loading ? 'Saving...' : compressing ? `Compressing... ${compressionProgress}%` : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
-                            </button>
+                            {/* Submit Button Section - Updated with Delete */}
+                            <div className="flex gap-3">
+                                {/* Update/Send Button */}
+                                <button
+                                    type="submit"
+                                    disabled={loading || compressing}
+                                    className="flex-1 py-4 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 disabled:opacity-50"
+                                    style={{ backgroundColor: '#d45673ff' }}
+                                >
+                                    {loading ? 'Saving...' : compressing ? `Compressing... ${compressionProgress}%` : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
+                                </button>
+
+                                {/* Delete Button - Only show when editing */}
+                                {editing && (
+                                    <button
+                                        type="button"
+                                        onClick={handleDelete}
+                                        disabled={loading}
+                                        className="px-6 py-4 rounded-xl bg-red-500 text-white font-bold text-lg transition-all transform hover:scale-105 hover:bg-red-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        <Trash2 size={20} />
+                                        Delete
+                                    </button>
+                                )}
+                            </div>
 
                             {/* Cancel edit button */}
                             {editing && (
@@ -940,50 +986,145 @@ export default function WishPage() {
                             )}
                         </form>
                     )}
+                    {/* ADD THIS CANCEL BUTTON FOR "ADD ANOTHER WISH" */}
+                    {step === 'form' && allWishes.length > 0 && !editing && (
+                        <div className="mt-4 text-center">
+                            <button
+                                onClick={() => {
+                                    setStep('preview');
+                                    setName('');
+                                    setMessage('');
+                                    setFile(null);
+                                    setFilePreview('');
+                                    setWishType('text');
+                                }}
+                                className="text-sm text-pastel-blue hover:underline flex items-center justify-center gap-1 mx-auto transition-colors py-2"
+                                style={{ color: '#3a84ceff' }}
+                            >
+                                ← Cancel and return to your wishes
+                            </button>
+                        </div>
+                    )}
 
                     {/* Preview Section */}
-                    {step === 'preview' && myWish && (
-                        <div className="space-y-6">
-                            <h2 className="text-2xl font-bold text-center" style={{ color: '#6295c8ff' }}>
-                                Your Wish
-                            </h2>
+                    {step === 'preview' && allWishes.length > 0 && (
+                        <div className="space-y-8">
+                            {/* All Wishes List - Each wish displayed the same way */}
+                            <div className="space-y-6">
+                                <h2 className="text-2xl font-bold text-center" style={{ color: '#6295c8ff' }}>
+                                    Your Wishes
+                                </h2>
 
-                            <div className="bg-pastel-pink/10 rounded-xl p-6">
-                                <p className="font-semibold text-lg mb-2" style={{ color: '#d45673ff' }}>
-                                    {myWish.name}
-                                </p>
-                                {myWish.file_url && (
-                                    <div className="mt-4 mb-4">
-                                        {myWish.type === 'image' ? (
-                                            <img src={myWish.file_url} alt="Wish" className="max-h-64 rounded-lg mx-auto" />
-                                        ) : myWish.type === 'video' ? (
-                                            <video src={myWish.file_url} controls className="max-h-64 rounded-lg mx-auto" />
-                                        ) : null}
+                                {allWishes.map((wish) => (
+                                    <div
+                                        key={wish.id}
+                                        className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border border-white/50"
+                                    >
+                                        <div className="p-4 bg-gradient-to-r from-pastel-pink/10 to-pastel-blue/10">
+                                            <p className="font-semibold text-lg mb-2" style={{ color: '#d45673ff' }}>
+                                                {wish.name}
+                                            </p>
+
+                                            {/* Media Content */}
+                                            {wish.file_url && (
+                                                <div className="mb-4 rounded-lg overflow-hidden bg-gray-100">
+                                                    {wish.type === 'image' ? (
+                                                        <div
+                                                            className="cursor-pointer group relative"
+                                                            onClick={() => {
+                                                                setSelectedImage(wish.file_url!);
+                                                                setSelectedImageName(`Wish from ${wish.name}`);
+                                                            }}
+                                                        >
+                                                            <img
+                                                                src={wish.file_url}
+                                                                alt={`Wish from ${wish.name}`}
+                                                                className="w-full h-48 object-cover group-hover:opacity-90 transition-opacity"
+                                                                onError={(e) => {
+                                                                    e.currentTarget.src = 'https://via.placeholder.com/300x200?text=Image+not+available';
+                                                                }}
+                                                            />
+
+                                                        </div>
+                                                    ) : wish.type === 'video' ? (
+                                                        <video
+                                                            src={wish.file_url}
+                                                            controls
+                                                            className="w-full h-48 object-cover"
+                                                            onError={(e) => {
+                                                                console.error('Video failed to load:', wish.file_url);
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                </div>
+                                            )}
+
+                                            {/* Message */}
+                                            {wish.message && (
+                                                <p className="text-gray-700 text-sm mb-3">{wish.message}</p>
+                                            )}
+
+                                            {/* Date */}
+                                            <p className="text-xs text-gray-400 mb-4">
+                                                {new Date(wish.created_at).toLocaleDateString('en-US', {
+                                                    month: 'long',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })}
+                                            </p>
+
+                                            {/* Edit and Delete buttons for each wish */}
+                                            <div className="flex gap-3 pt-2 border-t border-pastel-pink/20">
+                                                <button
+                                                    onClick={() => selectWishToEdit(wish)}
+                                                    className="flex-1 py-2 rounded-lg border-2 flex items-center justify-center gap-2 transition-colors hover:bg-pastel-blue/10"
+                                                    style={{ borderColor: '#A7C7E7', color: '#A7C7E7' }}
+                                                >
+                                                    <Edit2 size={18} />
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(wish.id);
+                                                    }}
+                                                    className="flex-1 py-2 rounded-lg border-2 border-red-300 text-red-500 flex items-center justify-center gap-2 transition-colors hover:bg-red-50"
+                                                >
+                                                    <Trash2 size={18} />
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
-                                {myWish.message && (
-                                    <p className="mt-4 text-gray-700">{myWish.message}</p>
-                                )}
+                                ))}
                             </div>
-                            <div className="flex gap-4">
+
+                            {/* Send Another Wish Button */}
+                            <div className="text-center pt-4 border-t-2 border-pastel-pink/30">
                                 <button
-                                    onClick={startEditing}
-                                    className="flex-1 py-3 rounded-xl border-2 flex items-center justify-center gap-2 transition-colors hover:bg-pastel-blue/10"
-                                    style={{ borderColor: '#A7C7E7', color: '#A7C7E7' }}
+                                    onClick={() => {
+                                        setStep('form');
+                                        setName('');
+                                        setMessage('');
+                                        setFile(null);
+                                        setFilePreview('');
+                                        setWishType('text');
+                                        setEditing(false);
+                                        setCurrentWish(null);
+                                    }}
+                                    className="px-8 py-3 bg-pastel-pink text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform inline-flex items-center gap-2"
+                                    style={{ backgroundColor: '#d45673ff' }}
                                 >
-                                    <Edit2 size={20} />
-                                    Edit
+                                    <span className="text-xl">+</span> Send Another Wish
                                 </button>
-                                <button
-                                    onClick={handleDelete}
-                                    className="flex-1 py-3 rounded-xl border-2 border-red-300 text-red-500 flex items-center justify-center gap-2 transition-colors hover:bg-red-50"
-                                >
-                                    <Trash2 size={20} />
-                                    Delete
-                                </button>
+                                <p className="text-xs text-gray-400 mt-2">
+                                    You can send as many wishes as you'd like to Lynda
+                                </p>
                             </div>
                         </div>
                     )}
+
+
 
                     {/* Success message but no wish (shouldn't happen, but just in case) */}
                     {step === 'preview' && !myWish && (
