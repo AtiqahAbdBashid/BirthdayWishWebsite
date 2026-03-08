@@ -77,7 +77,7 @@ export default function WishPage() {
             return;
         }
         setCurrentUser(user);
-        loadMyWish(user.id);
+        loadMyWish(user.id); // This will now work!
     };
 
     // Cleanup camera on unmount
@@ -112,20 +112,31 @@ export default function WishPage() {
         }
     }, []);
 
-    const loadMyWish = async () => {
+    const loadMyWish = async (userId?: string) => {
         try {
-            const user = await getCurrentUser();
-            if (!user) {
+            // Use provided userId or get current user
+            let user = currentUser;
+            if (!user && !userId) {
+                user = await getCurrentUser();
+                if (!user) {
+                    router.push('/login?redirect=/wish');
+                    return;
+                }
+                setCurrentUser(user);
+            }
+
+            const uid = userId || user?.id || currentUser?.id;
+            if (!uid) {
                 router.push('/login?redirect=/wish');
                 return;
             }
 
-            console.log('Loading wishes for user:', user.id);
+            console.log('Loading wishes for user:', uid);
 
             const { data, error } = await supabase
                 .from('wishes')
                 .select('*')
-                .eq('user_id', user.id)
+                .eq('user_id', uid)
                 .order('created_at', { ascending: false });
 
             console.log('Load result:', { data, error });
