@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LogOut, Heart, Film, MessageCircle, X } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '../../lib/supabase/client';
+import BirthdayFlashcards from '@/components/BirthdayFlashcards';
 
 type Wish = {
     id: string;
@@ -20,22 +21,31 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [wishes, setWishes] = useState<Wish[]>([]);
     const [activeTab, setActiveTab] = useState<'all' | 'text' | 'media'>('all');
-    // Image modal states
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedImageName, setSelectedImageName] = useState<string>('');
+    const [showFlashcards, setShowFlashcards] = useState(false);
+
     const router = useRouter();
+    const searchParams = useSearchParams();
     const supabase = createClient();
 
     useEffect(() => {
-        // Check if user is authenticated
         const auth = sessionStorage.getItem('lyndaAuth');
         if (!auth) {
             router.push('/');
         } else {
             setIsAuthenticated(true);
             loadWishes();
+
+            const showCards = searchParams.get('showFlashcards') === 'true';
+            if (showCards) {
+                setShowFlashcards(true);
+                const url = new URL(window.location.href);
+                url.searchParams.delete('showFlashcards');
+                window.history.replaceState({}, '', url.toString());
+            }
         }
-    }, [router]);
+    }, [router, searchParams]);
 
     const loadWishes = async () => {
         try {
@@ -84,10 +94,7 @@ export default function DashboardPage() {
                     backgroundColor: '#ce6e84ff',
                 }}
             >
-                {/* Same subtle white overlay as main page */}
                 <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]"></div>
-
-                {/* Loading content - positioned above the overlay */}
                 <div className="relative z-10 bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl">
                     <div className="text-2xl animate-pulse" style={{ color: '#FFD1DC' }}>
                         🎀 Loading Birthday Surprises... 🎀
@@ -109,9 +116,12 @@ export default function DashboardPage() {
                 backgroundColor: '#ce6e84ff',
             }}
         >
-            {/* Very subtle overlay - just enough to make text readable */}
-            <div className="min-h-screen bg-white/40 backdrop-blur-[1px]">
-                {/* Header - slightly more opaque for readability */}
+            {showFlashcards && (
+                <BirthdayFlashcards onComplete={() => setShowFlashcards(false)} />
+            )}
+
+            <div className={`min-h-screen bg-white/40 backdrop-blur-[1px] transition-all duration-300 ${showFlashcards ? 'blur-sm pointer-events-none' : ''
+                }`}>
                 <header className="bg-white/90 backdrop-blur-sm shadow-sm sticky top-0 z-10">
                     <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                         <h1 className="text-2xl md:text-3xl font-bold" style={{ color: '#d45673ff' }}>
@@ -138,7 +148,6 @@ export default function DashboardPage() {
                 </header>
 
                 <main className="max-w-6xl mx-auto px-4 py-8">
-                    {/* Personal wish card - keep white for emphasis */}
                     <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 mb-8 transform hover:scale-105 transition-transform border border-white/50">
                         <div className="flex items-center gap-6 flex-wrap md:flex-nowrap">
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-pastel-pink flex-shrink-0">
@@ -166,7 +175,6 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Stats cards - slightly transparent to show background */}
                     <div className="grid grid-cols-3 gap-4 mb-8">
                         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg">
                             <div className="text-3xl font-bold" style={{ color: '#d45673ff' }}>{wishes.length}</div>
@@ -186,7 +194,6 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Tab Navigation */}
                     <div className="flex gap-2 mb-6 border-b-2 border-pastel-blue/20 pb-2 bg-white/30 backdrop-blur-sm p-2 rounded-t-lg">
                         <button
                             onClick={() => setActiveTab('all')}
@@ -219,7 +226,6 @@ export default function DashboardPage() {
                         </button>
                     </div>
 
-                    {/* Wishes Grid */}
                     {filteredWishes.length === 0 ? (
                         <div className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl">
                             <p className="text-2xl text-gray-400">No wishes yet 🎀</p>
@@ -238,7 +244,6 @@ export default function DashboardPage() {
                                             <span className="font-semibold text-gray-800">{wish.name}</span>
                                         </div>
 
-                                        {/* Media Content */}
                                         {wish.file_url && (
                                             <div className="mb-4 rounded-lg overflow-hidden bg-gray-100">
                                                 {wish.type === 'image' ? (
@@ -276,12 +281,10 @@ export default function DashboardPage() {
                                             </div>
                                         )}
 
-                                        {/* Message */}
                                         {wish.message && (
                                             <p className="text-gray-700 text-sm mb-3">{wish.message}</p>
                                         )}
 
-                                        {/* Date */}
                                         <p className="text-xs text-gray-400">
                                             {new Date(wish.created_at).toLocaleDateString('en-US', {
                                                 month: 'long',
@@ -295,7 +298,6 @@ export default function DashboardPage() {
                         </div>
                     )}
 
-                    {/* Image Modal - Lightbox */}
                     {selectedImage && (
                         <div
                             className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300"

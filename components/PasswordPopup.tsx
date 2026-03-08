@@ -34,10 +34,10 @@ export default function PasswordPopup({ onClose }: Props) {
             const data = await res.json();
 
             if (data.success) {
-                // Store auth state in session
                 sessionStorage.setItem('lyndaAuth', 'true');
-                router.push('/dashboard');
-            } else {
+                router.push('/dashboard?showFlashcards=true'); // Changed from '/dashboard'
+            }
+            else {
                 setError('Wrong password! Try again 🎂');
                 setPassword(''); // Clear the password field
             }

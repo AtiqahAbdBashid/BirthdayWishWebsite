@@ -25,7 +25,7 @@ export default function HomePage() {
 
   useEffect(() => {
     // Force reload if there's a version mismatch
-    const currentVersion = 'v2.0'; // Update this with each major release
+    const currentVersion = 'v2.1'; // Update this with each major release
 
     if (sessionStorage.getItem('appVersion') !== currentVersion) {
       sessionStorage.setItem('appVersion', currentVersion);
