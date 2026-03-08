@@ -1134,7 +1134,7 @@ export default function WishPage() {
                                         setFilePreview('');
                                         setWishType('text');
                                         setEditing(false);
-                                        setCurrentWish(null);
+
                                     }}
                                     className="px-8 py-3 bg-pastel-pink text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform inline-flex items-center gap-2"
                                     style={{ backgroundColor: '#d45673ff' }}
