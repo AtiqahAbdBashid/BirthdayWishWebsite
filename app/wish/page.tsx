@@ -649,6 +649,17 @@ export default function WishPage() {
         }
     };
 
+    const selectWishToEdit = (wish: Wish) => {
+        setMyWish(wish);
+        setName(wish.name);
+        setMessage(wish.message || '');
+        setWishType(wish.type);
+        setEditing(true);
+        setStep('form');
+        // Scroll to top smoothly
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const startEditing = () => {
         if (myWish) {
             setName(myWish.name);
