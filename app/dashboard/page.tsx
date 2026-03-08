@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LogOut, Heart, Film, MessageCircle, X } from 'lucide-react';
 import Link from 'next/link';
@@ -16,7 +16,8 @@ type Wish = {
     created_at: string;
 };
 
-export default function DashboardPage() {
+// Create a separate component that uses useSearchParams
+function DashboardContent() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
     const [wishes, setWishes] = useState<Wish[]>([]);
@@ -328,5 +329,20 @@ export default function DashboardPage() {
                 </main>
             </div>
         </div>
+    );
+}
+
+// Main page component with Suspense
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-2xl animate-pulse" style={{ color: '#FFD1DC' }}>
+                    🎀 Loading Dashboard... 🎀
+                </div>
+            </div>
+        }>
+            <DashboardContent />
+        </Suspense>
     );
 }
