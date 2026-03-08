@@ -77,7 +77,7 @@ export default function WishPage() {
             return;
         }
         setCurrentUser(user);
-        loadMyWish(user.id); // This will now work!
+        loadMyWish(user.id);
     };
 
     // Cleanup camera on unmount
@@ -582,8 +582,16 @@ export default function WishPage() {
         }
     };
 
-    const handleDelete = async (wishId: string) => {
-        if (!confirm('Are you sure you want to delete your wish?')) return;
+    const handleDelete = async (wishId?: string) => {
+        // Get the wish ID from parameter or from current wish
+        const idToDelete = wishId || myWish?.id;
+
+        if (!idToDelete) {
+            alert('No wish selected to delete');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete this wish?')) return;
         if (!currentUser) return;
 
         setLoading(true);
@@ -591,7 +599,7 @@ export default function WishPage() {
             const { error } = await supabase
                 .from('wishes')
                 .delete()
-                .eq('id', wishId)
+                .eq('id', idToDelete)
                 .eq('user_id', currentUser.id);
 
             if (error) {
@@ -967,18 +975,15 @@ export default function WishPage() {
                                     {loading ? 'Saving...' : compressing ? `Compressing... ${compressionProgress}%` : editing ? 'Update Wish ✨' : 'Send Wish 🎁'}
                                 </button>
 
-                                {/* Delete Button - Only show when editing */}
-                                {editing && (
-                                    <button
-                                        type="button"
-                                        onClick={handleDelete}
-                                        disabled={loading}
-                                        className="px-6 py-4 rounded-xl bg-red-500 text-white font-bold text-lg transition-all transform hover:scale-105 hover:bg-red-600 disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        <Trash2 size={20} />
-                                        Delete
-                                    </button>
-                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => handleDelete()}  // No parameter - uses myWish.id
+                                    disabled={loading}
+                                    className="px-6 py-4 rounded-xl bg-red-500 text-white font-bold text-lg transition-all transform hover:scale-105 hover:bg-red-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 size={20} />
+                                    Delete
+                                </button>
                             </div>
 
                             {/* Cancel edit button */}
@@ -1095,10 +1100,7 @@ export default function WishPage() {
                                                     Edit
                                                 </button>
                                                 <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDelete(wish.id);
-                                                    }}
+                                                    onClick={() => handleDelete(wish.id)}  // Pass the specific wish ID
                                                     className="flex-1 py-2 rounded-lg border-2 border-red-300 text-red-500 flex items-center justify-center gap-2 transition-colors hover:bg-red-50"
                                                 >
                                                     <Trash2 size={18} />
