@@ -82,6 +82,33 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
     };
 
     const getCardStyle = (index: number) => {
+        // SIMPLIFIED MOBILE VERSION - only current card is visible
+        if (isMobile) {
+            if (index === currentCard) {
+                return {
+                    zIndex: 30,
+                    scale: 1,
+                    rotate: 0,
+                    y: 0,
+                    x: 0,
+                    opacity: 1,
+                    filter: 'brightness(1)',
+                };
+            } else {
+                // Completely hidden - no layers to cause flicker
+                return {
+                    zIndex: 0,
+                    scale: 0,
+                    rotate: 0,
+                    y: 0,
+                    x: 0,
+                    opacity: 0,
+                    filter: 'brightness(1)',
+                };
+            }
+        }
+
+        // DESKTOP VERSION - keep your existing stacked effect
         if (index === currentCard) {
             return {
                 zIndex: 30,
