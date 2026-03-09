@@ -67,3 +67,20 @@ body {
     transform: translateZ(0);
   }
 }
+
+/* Flashcard-specific hardware acceleration - ONLY affects flashcards */
+.flashcard-container {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  perspective: 1000;
+}
+
+.flashcard-card {
+  -webkit-backface-visibility: hidden !important;
+  backface-visibility: hidden !important;
+  transform: translate3d(0, 0, 0) !important;
+  will-change: transform, opacity;
+}

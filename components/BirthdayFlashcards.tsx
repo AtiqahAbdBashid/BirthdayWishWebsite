@@ -127,7 +127,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm flashcard-container"
             style={{
                 willChange: 'transform',
                 transform: 'translateZ(0)'
@@ -141,7 +141,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                     return (
                         <motion.div
                             key={card.id}
-                            className="absolute w-full"
+                            className="absolute w-full flashcard-card"
                             style={{
                                 zIndex: style.zIndex,
                                 scale: style.scale,
@@ -159,7 +159,6 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                                     ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                                     : '0 15px 30px -10px rgba(0, 0, 0, 0.3)',
                             }}
-
                             animate={{
                                 scale: style.scale,
                                 rotate: `${style.rotate}deg`,
