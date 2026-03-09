@@ -215,18 +215,28 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                             }}
                         >
                             <div className="relative w-full h-full">
-                                <img
-                                    src={card.gif}
-                                    alt={`Birthday card ${card.id}`}
+                                {/* Video version - hardware accelerated */}
+                                <video
+                                    key={`video-${card.id}`}
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
                                     className="w-full h-auto rounded-xl"
                                     style={{
                                         display: 'block',
                                         width: '100%',
                                         height: 'auto',
-                                        boxShadow: 'none',
-                                        background: 'transparent'
                                     }}
-                                />
+                                >
+                                    <source src={`/videos/flashcards/card-${card.id}.mp4`} type="video/mp4" />
+                                    {/* Fallback to GIF if video fails */}
+                                    <img
+                                        src={card.gif}
+                                        alt={`Birthday card ${card.id}`}
+                                        className="w-full h-auto rounded-xl"
+                                    />
+                                </video>
 
                                 {/* Music Button on First Card */}
                                 {currentCard === 0 && (
