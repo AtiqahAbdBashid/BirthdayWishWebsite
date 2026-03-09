@@ -1,9 +1,8 @@
 'use client';
 
-
 import { motion, PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { useState, useEffect } from 'react'; // Add useEffect here
+import { useState, useEffect } from 'react';
 
 interface Wish {
     id: string;
@@ -22,6 +21,15 @@ interface SwipeWishViewerProps {
 export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [colorIndex, setColorIndex] = useState(0);
+
+    const cardColors = [
+        'from-pastel-pink/30 to-pastel-blue/30',
+        'from-pastel-yellow/30 to-pastel-pink/30',
+        'from-pastel-blue/30 to-pastel-yellow/30',
+        'from-[#FFD1DC]/30 to-[#FDFD97]/30',
+        'from-[#A7C7E7]/30 to-[#FFB3BA]/30',
+        'from-[#C7CEEA]/30 to-[#B5EAD7]/30',
+    ];
 
     const currentWish = wishes[currentIndex];
 
@@ -44,15 +52,6 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
         }
     };
 
-    const cardColors = [
-        'bg-gradient-to-br from-pastel-pink/20 to-pastel-blue/20',
-        'bg-gradient-to-br from-pastel-yellow/20 to-pastel-pink/20',
-        'bg-gradient-to-br from-pastel-blue/20 to-pastel-yellow/20',
-        'bg-gradient-to-br from-[#FFD1DC]/20 to-[#FDFD97]/20',
-        'bg-gradient-to-br from-[#A7C7E7]/20 to-[#FFB3BA]/20',
-        'bg-gradient-to-br from-[#C7CEEA]/20 to-[#B5EAD7]/20',
-    ];
-
     const goToNext = () => {
         if (currentIndex < wishes.length - 1) {
             setCurrentIndex(currentIndex + 1);
@@ -65,20 +64,34 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
         }
     };
 
-
+    if (!wishes || wishes.length === 0) {
+        return (
+            <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl p-8 text-center">
+                    <p className="text-gray-700">No wishes to display</p>
+                    <button
+                        onClick={onClose}
+                        className="mt-4 px-4 py-2 bg-pastel-pink text-white rounded-lg"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
-            {/* Close button */}
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+            {/* Close button - more visible */}
             <button
                 onClick={onClose}
-                className="absolute top-4 right-4 z-50 text-white/70 hover:text-white"
+                className="absolute top-4 right-4 z-50 bg-white/80 text-gray-700 rounded-full p-2 hover:bg-white transition-colors shadow-lg"
             >
-                <X size={24} />
+                <X size={20} />
             </button>
 
-            {/* Progress indicator */}
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-white/70">
+            {/* Progress indicator - more visible */}
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/80 text-gray-700 px-4 py-1 rounded-full text-sm shadow-lg">
                 {currentIndex + 1} / {wishes.length}
             </div>
 
@@ -90,8 +103,8 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                 onDragEnd={handleSwipe}
                 className="w-full max-w-md cursor-grab active:cursor-grabbing"
             >
-                <div className="bg-gradient-to-br from-pastel-pink/20 to-pastel-blue/20 rounded-2xl shadow-2xl overflow-hidden">
-                    <div className="p-6">
+                <div className={`bg-gradient-to-br ${cardColors[colorIndex]} rounded-2xl shadow-2xl overflow-hidden border-2 border-white/50`}>
+                    <div className="p-6 bg-white/80 backdrop-blur-sm">
                         <h3 className="text-xl font-bold text-pastel-pink mb-2">
                             {currentWish.name}
                         </h3>
@@ -102,14 +115,14 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                                     <img
                                         src={currentWish.file_url}
                                         alt="Wish"
-                                        className="w-full h-64 object-cover"
+                                        className="w-full h-64 object-cover rounded-lg"
                                     />
                                 )}
                                 {currentWish.type === 'video' && (
                                     <video
                                         src={currentWish.file_url}
                                         controls
-                                        className="w-full h-64 object-cover"
+                                        className="w-full h-64 object-cover rounded-lg"
                                     />
                                 )}
                             </div>
@@ -130,7 +143,7 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                         </p>
                     </div>
 
-                    <div className="bg-pastel-pink/10 p-3 text-center text-sm text-gray-500">
+                    <div className="bg-white/80 backdrop-blur-sm p-3 text-center text-sm text-gray-600 border-t border-white/50">
                         ← Swipe left • Swipe right →
                     </div>
                 </div>
@@ -140,14 +153,14 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
             <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4">
                 <button
                     onClick={goToPrevious}
-                    className="p-3 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors disabled:opacity-30"
+                    className="p-3 bg-white/80 backdrop-blur-sm rounded-full text-gray-700 hover:bg-white transition-colors disabled:opacity-30 shadow-lg"
                     disabled={currentIndex === 0}
                 >
                     <ChevronLeft size={24} />
                 </button>
                 <button
                     onClick={goToNext}
-                    className="p-3 bg-white/20 backdrop-blur-sm rounded-full text-white hover:bg-white/30 transition-colors disabled:opacity-30"
+                    className="p-3 bg-white/80 backdrop-blur-sm rounded-full text-gray-700 hover:bg-white transition-colors disabled:opacity-30 shadow-lg"
                     disabled={currentIndex === wishes.length - 1}
                 >
                     <ChevronRight size={24} />
