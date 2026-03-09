@@ -140,7 +140,14 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                                 overflow: 'hidden',
                                 boxShadow: index === currentCard
                                     ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-                                    : '0 15px 30px -10px rgba(0, 0, 0, 0.3)'
+                                    : '0 15px 30px -10px rgba(0, 0, 0, 0.3)',
+                                WebkitBackfaceVisibility: 'hidden',
+                                backfaceVisibility: 'hidden',
+                                WebkitPerspective: 1000,
+                                perspective: 1000,
+                                transform: 'translate3d(0, 0, 0)',
+                                willChange: 'transform, opacity',
+
                             }}
                             animate={{
                                 scale: style.scale,
@@ -153,11 +160,13 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                             transition={{
                                 type: "spring",
                                 stiffness: 300,
-                                damping: 30
+                                damping: 30,
+                                mass: 0.5,
+                                velocity: 0.5,
                             }}
                             drag={isCurrentCard ? "x" : false}
                             dragConstraints={{ left: 0, right: 0 }}
-                            dragElastic={1}
+                            dragElastic={0.2}
                             onDragEnd={(e, { offset, velocity }) => {
                                 if (!isCurrentCard) return;
                                 const swipe = swipePower(offset.x, velocity.x);
