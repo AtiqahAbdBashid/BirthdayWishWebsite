@@ -132,7 +132,13 @@ function DashboardContent() {
         >
             {showFlashcards && (
                 <BirthdayFlashcards
-                    onComplete={() => setShowFlashcards(false)}
+                    onComplete={() => {
+                        setShowFlashcards(false);
+                        // Auto-show swipe view after flashcards
+                        setTimeout(() => {
+                            setShowSwipeView(true);
+                        }, 500); // Small delay for smooth transition
+                    }}
                 />
             )}
             <MusicButton />
@@ -215,9 +221,9 @@ function DashboardContent() {
                     <div className="flex justify-center mb-4">
                         <button
                             onClick={() => setShowSwipeView(true)}
-                            className="px-6 py-3 bg-pastel-pink text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
+                            className="px-6 py-3 bg-[##d45673ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
                         >
-                            🎴 View Wishes as Cards
+                            View Wishes as Cards
                         </button>
                     </div>
 

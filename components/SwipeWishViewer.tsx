@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+
 import { motion, PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useState, useEffect } from 'react'; // Add useEffect here
 
 interface Wish {
     id: string;
@@ -20,8 +21,14 @@ interface SwipeWishViewerProps {
 
 export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [colorIndex, setColorIndex] = useState(0);
 
     const currentWish = wishes[currentIndex];
+
+    useEffect(() => {
+        // Cycle to next color when currentIndex changes
+        setColorIndex((prev) => (prev + 1) % cardColors.length);
+    }, [currentIndex]);
 
     const handleSwipe = (event: any, info: PanInfo) => {
         if (info.offset.x < -50) {
@@ -37,6 +44,15 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
         }
     };
 
+    const cardColors = [
+        'bg-gradient-to-br from-pastel-pink/20 to-pastel-blue/20',
+        'bg-gradient-to-br from-pastel-yellow/20 to-pastel-pink/20',
+        'bg-gradient-to-br from-pastel-blue/20 to-pastel-yellow/20',
+        'bg-gradient-to-br from-[#FFD1DC]/20 to-[#FDFD97]/20',
+        'bg-gradient-to-br from-[#A7C7E7]/20 to-[#FFB3BA]/20',
+        'bg-gradient-to-br from-[#C7CEEA]/20 to-[#B5EAD7]/20',
+    ];
+
     const goToNext = () => {
         if (currentIndex < wishes.length - 1) {
             setCurrentIndex(currentIndex + 1);
@@ -48,6 +64,8 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
             setCurrentIndex(currentIndex - 1);
         }
     };
+
+
 
     return (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
@@ -72,7 +90,7 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                 onDragEnd={handleSwipe}
                 className="w-full max-w-md cursor-grab active:cursor-grabbing"
             >
-                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div className="bg-gradient-to-br from-pastel-pink/20 to-pastel-blue/20 rounded-2xl shadow-2xl overflow-hidden">
                     <div className="p-6">
                         <h3 className="text-xl font-bold text-pastel-pink mb-2">
                             {currentWish.name}
