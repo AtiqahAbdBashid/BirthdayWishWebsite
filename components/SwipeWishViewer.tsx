@@ -22,50 +22,28 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
     const [currentIndex, setCurrentIndex] = useState(0);
     const [colorIndex, setColorIndex] = useState(0);
 
+    // SOLID colors - no opacity
     const cardColors = [
-        'from-pastel-pink/30 to-pastel-blue/30',
-        'from-pastel-yellow/30 to-pastel-pink/30',
-        'from-pastel-blue/30 to-pastel-yellow/30',
-        'from-[#FFD1DC]/30 to-[#FDFD97]/30',
-        'from-[#A7C7E7]/30 to-[#FFB3BA]/30',
-        'from-[#C7CEEA]/30 to-[#B5EAD7]/30',
+        'from-[#FFD1DC] to-[#A7C7E7]',
+        'from-[#FDFD97] to-[#FFD1DC]',
+        'from-[#A7C7E7] to-[#FDFD97]',
+        'from-[#FFB3BA] to-[#C7CEEA]',
+        'from-[#B5EAD7] to-[#FFD1DC]',
+        'from-[#C7CEEA] to-[#B5EAD7]',
     ];
 
     const currentWish = wishes[currentIndex];
 
-    // Log when component mounts
     useEffect(() => {
-        console.log('SwipeViewer mounted');
-        console.log('Initial colorIndex:', colorIndex);
-        console.log('Card colors array:', cardColors);
-    }, []);
-
-    // Log when colorIndex changes
-    useEffect(() => {
-        console.log('colorIndex changed to:', colorIndex);
-        console.log('Current gradient:', cardColors[colorIndex]);
-    }, [colorIndex]);
-
-    // Log when currentIndex changes
-    useEffect(() => {
-        console.log('Swiped to wish index:', currentIndex);
-        console.log('Setting new colorIndex from', colorIndex, 'to', (colorIndex + 1) % cardColors.length);
-        setColorIndex((prev) => {
-            const newIndex = (prev + 1) % cardColors.length;
-            console.log('New colorIndex set to:', newIndex);
-            return newIndex;
-        });
+        setColorIndex((prev) => (prev + 1) % cardColors.length);
     }, [currentIndex]);
 
     const handleSwipe = (event: any, info: PanInfo) => {
-        console.log('Swipe detected! Offset:', info.offset.x);
         if (info.offset.x < -50) {
-            console.log('Swiped left - going to next wish');
             if (currentIndex < wishes.length - 1) {
                 setCurrentIndex(currentIndex + 1);
             }
         } else if (info.offset.x > 50) {
-            console.log('Swiped right - going to previous wish');
             if (currentIndex > 0) {
                 setCurrentIndex(currentIndex - 1);
             }
@@ -73,14 +51,12 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
     };
 
     const goToNext = () => {
-        console.log('Next button clicked');
         if (currentIndex < wishes.length - 1) {
             setCurrentIndex(currentIndex + 1);
         }
     };
 
     const goToPrevious = () => {
-        console.log('Previous button clicked');
         if (currentIndex > 0) {
             setCurrentIndex(currentIndex - 1);
         }
@@ -122,10 +98,11 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                 onDragEnd={handleSwipe}
                 className="w-full max-w-md cursor-grab active:cursor-grabbing"
             >
-                {/* Use a simple background color first to test */}
+                {/* SOLID gradient background */}
                 <div className={`bg-gradient-to-br ${cardColors[colorIndex]} rounded-2xl shadow-2xl overflow-hidden border-2 border-white/50`}>
-                    <div className="p-6"> {/* ← REMOVED bg-white/80 backdrop-blur-sm */}
-                        <h3 className="text-xl font-bold text-white mb-2 drop-shadow-lg"> {/* Change text color to white */}
+                    {/* Semi-transparent overlay for text readability */}
+                    <div className="p-6 bg-black/20 backdrop-blur-[2px]">
+                        <h3 className="text-xl font-bold text-white mb-2 drop-shadow-lg">
                             {currentWish.name}
                         </h3>
 
@@ -154,7 +131,7 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                             </p>
                         )}
 
-                        <p className="text-sm text-white/80 drop-shadow">
+                        <p className="text-sm text-white/90 drop-shadow">
                             {new Date(currentWish.created_at).toLocaleDateString('en-US', {
                                 month: 'long',
                                 day: 'numeric',
@@ -163,8 +140,8 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                         </p>
                     </div>
 
-                    <div className="bg-black/20 backdrop-blur-sm p-3 text-center text-sm text-white border-t border-white/30">
-                        ← Previous • Next →
+                    <div className="bg-black/40 backdrop-blur-sm p-3 text-center text-sm text-white border-t border-white/30">
+                        ← Swipe left • Swipe right →
                     </div>
                 </div>
             </motion.div>
