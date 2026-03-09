@@ -124,8 +124,8 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
             >
                 {/* Use a simple background color first to test */}
                 <div className={`bg-gradient-to-br ${cardColors[colorIndex]} rounded-2xl shadow-2xl overflow-hidden border-2 border-white/50`}>
-                    <div className="p-6 bg-white/80 backdrop-blur-sm">
-                        <h3 className="text-xl font-bold text-pastel-pink mb-2">
+                    <div className="p-6"> {/* ← REMOVED bg-white/80 backdrop-blur-sm */}
+                        <h3 className="text-xl font-bold text-white mb-2 drop-shadow-lg"> {/* Change text color to white */}
                             {currentWish.name}
                         </h3>
 
@@ -149,12 +149,12 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                         )}
 
                         {currentWish.message && (
-                            <p className="text-gray-700 text-lg mb-4">
+                            <p className="text-white text-lg mb-4 drop-shadow-md">
                                 {currentWish.message}
                             </p>
                         )}
 
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-white/80 drop-shadow">
                             {new Date(currentWish.created_at).toLocaleDateString('en-US', {
                                 month: 'long',
                                 day: 'numeric',
@@ -163,8 +163,8 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                         </p>
                     </div>
 
-                    <div className="bg-white/80 backdrop-blur-sm p-3 text-center text-sm text-gray-600 border-t border-white/50">
-                        ← Swipe left • Swipe right →
+                    <div className="bg-black/20 backdrop-blur-sm p-3 text-center text-sm text-white border-t border-white/30">
+                        ← Previous • Next →
                     </div>
                 </div>
             </motion.div>
