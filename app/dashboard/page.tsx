@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LogOut, Heart, Film, MessageCircle, X } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '../../lib/supabase/client';
 import BirthdayFlashcards from '@/components/BirthdayFlashcards';
+import { useMusic } from '@/context/MusicContext';
+import MusicButton from '@/components/MusicButton';
 
 type Wish = {
     id: string;
@@ -25,6 +27,7 @@ function DashboardContent() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedImageName, setSelectedImageName] = useState<string>('');
     const [showFlashcards, setShowFlashcards] = useState(false);
+    const { setButtonPosition } = useMusic(); // Get the setter
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -47,6 +50,14 @@ function DashboardContent() {
             }
         }
     }, [router, searchParams]);
+
+    useEffect(() => {
+        if (showFlashcards) {
+            setButtonPosition('inside-card');
+        } else {
+            setButtonPosition('bottom-right');
+        }
+    }, [showFlashcards, setButtonPosition]);
 
     const loadWishes = async () => {
         try {
@@ -97,7 +108,7 @@ function DashboardContent() {
             >
                 <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]"></div>
                 <div className="relative z-10 bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl">
-                    <div className="text-2xl animate-pulse" style={{ color: '#FFD1DC' }}>
+                    <div className="text-2xl animate-pulse" style={{ color: '#e33a61ff' }}>
                         🎀 Loading Birthday Surprises... 🎀
                     </div>
                 </div>
@@ -118,8 +129,11 @@ function DashboardContent() {
             }}
         >
             {showFlashcards && (
-                <BirthdayFlashcards onComplete={() => setShowFlashcards(false)} />
+                <BirthdayFlashcards
+                    onComplete={() => setShowFlashcards(false)}
+                />
             )}
+            <MusicButton />
 
             <div className={`min-h-screen bg-white/40 backdrop-blur-[1px] transition-all duration-300 ${showFlashcards ? 'blur-sm pointer-events-none' : ''
                 }`}>
@@ -164,13 +178,11 @@ function DashboardContent() {
                                     A Special Message for You
                                 </h2>
                                 <p className="text-gray-700 text-lg">
-                                    Happy Birthday, Lynda! I have never done this for anyone for a surprise.
-                                    I want your 20th to be the most memorable because you're only 20 once.
-                                    I know I am not there to be celebrating with you but I thought I'd make something you
-                                    will certainly remember, and hopefully something you can keep as a memory
-                                    for the rest of your life.
+                                    Happy Birthday, Lynda! I made this for you as I want your 20th
+                                    to be a memorable one. I hope this can be something you can keep as a
+                                    memory for the rest of your life.
                                     Here's a collection of birthday wishes from everyone who appreciates you.
-                                    Enjoy every single one! We love you! 💕
+                                    We love you! 💕 - Atiqah
                                 </p>
                             </div>
                         </div>
@@ -329,6 +341,7 @@ function DashboardContent() {
                 </main>
             </div>
         </div>
+
     );
 }
 
@@ -337,8 +350,20 @@ export default function DashboardPage() {
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-2xl animate-pulse" style={{ color: '#FFD1DC' }}>
-                    🎀 Loading Dashboard... 🎀
+                <div
+                    className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl"
+                    style={{
+                        backgroundColor: '#your-box-color-here', // For box background
+                    }}
+                >
+                    <div
+                        className="text-2xl animate-pulse"
+                        style={{
+                            color: '#your-text-color-here', // For text color
+                        }}
+                    >
+                        🎀 Loading Dashboard... 🎀
+                    </div>
                 </div>
             </div>
         }>

@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { useSound } from '@/hooks/useSound';
+import { Volume2, VolumeX } from 'lucide-react';
+import { useMusic } from '@/context/MusicContext'; // Import the music context
 
 interface BirthdayFlashcardsProps {
     onComplete: () => void;
@@ -11,8 +14,17 @@ interface BirthdayFlashcardsProps {
 export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsProps) {
     const [currentCard, setCurrentCard] = useState(0);
     const [direction, setDirection] = useState(0);
+    const { isPlaying, isMuted, toggleMute } = useMusic(); // Use the same music
+
+    // Initialize sounds
+    const playSwipe = useSound('/sounds/swipe.mp3', 0.1);
+    const playPop = useSound('/sounds/pop.mp3', 0.2);
 
     const cards = [
+        {
+            id: 0,
+            gif: '/images/flashcards/card-0.gif', // Your music instruction card
+        },
         {
             id: 1,
             gif: '/images/flashcards/card-1.gif',
@@ -37,6 +49,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
     };
 
     const paginate = (newDirection: number) => {
+        playSwipe();
         setDirection(newDirection);
         if (newDirection > 0 && currentCard < cards.length - 1) {
             setCurrentCard(currentCard + 1);
@@ -46,6 +59,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
     };
 
     const handleLastCard = () => {
+        playPop();
         confetti({
             particleCount: 150,
             spread: 80,
@@ -105,6 +119,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
             <div className="relative w-full max-w-md h-[600px] flex items-center justify-center pb-16">
                 {cards.map((card, index) => {
                     const style = getCardStyle(index);
+                    const isCurrentCard = index === currentCard;
 
                     return (
                         <motion.div
@@ -118,7 +133,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                                 x: style.x,
                                 opacity: style.opacity,
                                 filter: style.filter,
-                                pointerEvents: index === currentCard ? 'auto' : 'none',
+                                pointerEvents: isCurrentCard ? 'auto' : 'none',
                                 transition: 'all 0.3s ease',
                                 transformOrigin: 'center center',
                                 borderRadius: '1rem',
@@ -140,11 +155,11 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                                 stiffness: 300,
                                 damping: 30
                             }}
-                            drag={index === currentCard ? "x" : false}
+                            drag={isCurrentCard ? "x" : false}
                             dragConstraints={{ left: 0, right: 0 }}
                             dragElastic={1}
                             onDragEnd={(e, { offset, velocity }) => {
-                                if (index !== currentCard) return;
+                                if (!isCurrentCard) return;
                                 const swipe = swipePower(offset.x, velocity.x);
 
                                 if (swipe < -swipeConfidenceThreshold && currentCard < cards.length - 1) {
@@ -154,29 +169,56 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                                 }
                             }}
                         >
-                            <img
-                                src={card.gif}
-                                alt={`Birthday card ${card.id}`}
-                                className="w-full h-auto rounded-xl"
-                                style={{
-                                    display: 'block',
-                                    width: '100%',
-                                    height: 'auto',
-                                    boxShadow: 'none',
-                                    background: 'transparent'
-                                }}
-                            />
+                            <div className="relative w-full h-full">
+                                <img
+                                    src={card.gif}
+                                    alt={`Birthday card ${card.id}`}
+                                    className="w-full h-auto rounded-xl"
+                                    style={{
+                                        display: 'block',
+                                        width: '100%',
+                                        height: 'auto',
+                                        boxShadow: 'none',
+                                        background: 'transparent'
+                                    }}
+                                />
+
+                                {/* Music Button on First Card - Now controls the SAME music */}
+                                {currentCard === 0 && (
+                                    <motion.button
+                                        onClick={toggleMute}
+                                        className="absolute z-[100] bottom-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-xl hover:scale-110 transition-all duration-300 border-2 border-pastel-pink"
+                                        animate={{
+                                            scale: [1, 1.1, 1],
+                                        }}
+                                        transition={{
+                                            duration: 1.5,
+                                            repeat: Infinity,
+                                            repeatType: "reverse"
+                                        }}
+                                        whileHover={{ scale: 1.2 }}
+                                    >
+                                        {!isMuted ? (
+                                            <Volume2 size={24} style={{ color: '#FFD1DC' }} />
+                                        ) : (
+                                            <VolumeX size={24} style={{ color: '#A7C7E7' }} />
+                                        )}
+                                    </motion.button>
+                                )}
+
+
+                            </div>
                         </motion.div>
                     );
                 })}
 
-                {/* Navigation Buttons - Now outside all cards */}
+                {/* Navigation Buttons */}
                 <div className="absolute bottom-0 left-0 right-0 flex justify-center translate-y-full">
                     {currentCard < cards.length - 1 ? (
                         <button
                             onClick={() => paginate(1)}
                             className="px-6 py-2 text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform"
-                            style={{ backgroundColor: '#f289cbff' }}
+                            style={{ backgroundColor: '#dca5b2ff' }}
                         >
                             Next →
                         </button>
@@ -184,7 +226,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                         <button
                             onClick={handleLastCard}
                             className="px-6 py-2 text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform"
-                            style={{ backgroundColor: '#f289cbff' }}
+                            style={{ backgroundColor: '#dca5b2ff' }}
                         >
                             ✨ Open Your Wishes ✨
                         </button>
@@ -197,6 +239,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                         <button
                             key={index}
                             onClick={() => {
+                                playSwipe();
                                 setDirection(index > currentCard ? 1 : -1);
                                 setCurrentCard(index);
                             }}
@@ -208,7 +251,10 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                     ))}
                 </div>
 
-
+                {/* Swipe hint */}
+                <div className="absolute -bottom-24 left-0 right-0 text-center text-white/70 text-sm">
+                    ← Swipe to continue →
+                </div>
             </div>
         </div>
     );
