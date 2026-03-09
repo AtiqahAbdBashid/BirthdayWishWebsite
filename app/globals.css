@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --pastel-pink: #FFD1DC;
+  --pastel-blue: #A7C7E7;
+  --pastel-yellow: #FDFD97;
 }
 
 @theme inline {
@@ -83,4 +86,75 @@ body {
   backface-visibility: hidden !important;
   transform: translate3d(0, 0, 0) !important;
   will-change: transform, opacity;
+}
+
+/* Smooth scrolling for iOS */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent tap highlight on buttons */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tailwind directives and custom utilities */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .bg-pastel-pink {
+    background-color: var(--pastel-pink);
+  }
+
+  .bg-pastel-blue {
+    background-color: var(--pastel-blue);
+  }
+
+  .bg-pastel-yellow {
+    background-color: var(--pastel-yellow);
+  }
+
+  .text-pastel-pink {
+    color: var(--pastel-pink);
+  }
+
+  .text-pastel-blue {
+    color: var(--pastel-blue);
+  }
+
+  .text-pastel-yellow {
+    color: var(--pastel-yellow);
+  }
+
+  .border-pastel-pink {
+    border-color: var(--pastel-pink);
+  }
+
+  .border-pastel-blue {
+    border-color: var(--pastel-blue);
+  }
+
+  .border-pastel-yellow {
+    border-color: var(--pastel-yellow);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--pastel-pink);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--pastel-blue);
 }
