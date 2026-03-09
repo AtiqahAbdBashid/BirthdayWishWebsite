@@ -8,6 +8,7 @@ import { createClient } from '../../lib/supabase/client';
 import BirthdayFlashcards from '@/components/BirthdayFlashcards';
 import { useMusic } from '@/context/MusicContext';
 import MusicButton from '@/components/MusicButton';
+import SwipeWishViewer from '@/components/SwipeWishViewer';
 
 type Wish = {
     id: string;
@@ -28,6 +29,7 @@ function DashboardContent() {
     const [selectedImageName, setSelectedImageName] = useState<string>('');
     const [showFlashcards, setShowFlashcards] = useState(false);
     const { setButtonPosition } = useMusic(); // Get the setter
+    const [showSwipeView, setShowSwipeView] = useState(false);
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -207,6 +209,18 @@ function DashboardContent() {
                         </div>
                     </div>
 
+
+
+                    {/* SWIPE VIEW BUTTON - ADD HERE */}
+                    <div className="flex justify-center mb-4">
+                        <button
+                            onClick={() => setShowSwipeView(true)}
+                            className="px-6 py-3 bg-pastel-pink text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
+                        >
+                            🎴 View Wishes as Cards
+                        </button>
+                    </div>
+
                     <div className="flex gap-2 mb-6 border-b-2 border-pastel-blue/20 pb-2 bg-white/30 backdrop-blur-sm p-2 rounded-t-lg">
                         <button
                             onClick={() => setActiveTab('all')}
@@ -339,8 +353,15 @@ function DashboardContent() {
                         </div>
                     )}
                 </main>
-            </div>
-        </div>
+            </div >
+            {/* SWIPE VIEWER - ADD HERE */}
+            {showSwipeView && (
+                <SwipeWishViewer
+                    wishes={filteredWishes}
+                    onClose={() => setShowSwipeView(false)}
+                />
+            )}
+        </div >
 
     );
 }
@@ -369,5 +390,6 @@ export default function DashboardPage() {
         }>
             <DashboardContent />
         </Suspense>
+
     );
 }
