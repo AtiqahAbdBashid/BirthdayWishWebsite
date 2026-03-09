@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useSound } from '@/hooks/useSound';
 import { Volume2, VolumeX } from 'lucide-react';
-import { useMusic } from '@/context/MusicContext'; // Import the music context
+import { useMusic } from '@/context/MusicContext';
 
 interface BirthdayFlashcardsProps {
     onComplete: () => void;
@@ -14,7 +14,18 @@ interface BirthdayFlashcardsProps {
 export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsProps) {
     const [currentCard, setCurrentCard] = useState(0);
     const [direction, setDirection] = useState(0);
-    const { isPlaying, isMuted, toggleMute } = useMusic(); // Use the same music
+    const { isPlaying, isMuted, toggleMute } = useMusic();
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Check mobile on mount and resize
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Initialize sounds
     const playSwipe = useSound('/sounds/swipe.mp3', 0.1);
@@ -23,7 +34,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
     const cards = [
         {
             id: 0,
-            gif: '/images/flashcards/card-0.gif', // Your music instruction card
+            gif: '/images/flashcards/card-0.gif',
         },
         {
             id: 1,
@@ -71,6 +82,32 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
     };
 
     const getCardStyle = (index: number) => {
+        // SIMPLIFIED MOBILE VERSION - only shows current card
+        if (isMobile) {
+            if (index === currentCard) {
+                return {
+                    zIndex: 30,
+                    scale: 1,
+                    rotate: 0,
+                    y: 0,
+                    x: 0,
+                    opacity: 1,
+                    filter: 'brightness(1)'
+                };
+            } else {
+                return {
+                    zIndex: 0,
+                    scale: 0.9,
+                    rotate: 0,
+                    y: 0,
+                    x: 0,
+                    opacity: 0,
+                    filter: 'brightness(0.5)'
+                };
+            }
+        }
+
+        // DESKTOP VERSION - stacked effect
         if (index === currentCard) {
             return {
                 zIndex: 30,
@@ -115,7 +152,13 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+            style={{
+                willChange: 'transform',
+                transform: 'translateZ(0)'
+            }}
+        >
             <div className="relative w-full max-w-md h-[600px] flex items-center justify-center pb-16">
                 {cards.map((card, index) => {
                     const style = getCardStyle(index);
@@ -147,7 +190,6 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                                 perspective: 1000,
                                 transform: 'translate3d(0, 0, 0)',
                                 willChange: 'transform, opacity',
-
                             }}
                             animate={{
                                 scale: style.scale,
@@ -159,10 +201,9 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                             }}
                             transition={{
                                 type: "spring",
-                                stiffness: 300,
-                                damping: 30,
-                                mass: 0.5,
-                                velocity: 0.5,
+                                stiffness: isMobile ? 200 : 300,
+                                damping: isMobile ? 40 : 30,
+                                mass: isMobile ? 0.3 : 0.5,
                             }}
                             drag={isCurrentCard ? "x" : false}
                             dragConstraints={{ left: 0, right: 0 }}
@@ -192,7 +233,7 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                                     }}
                                 />
 
-                                {/* Music Button on First Card - Now controls the SAME music */}
+                                {/* Music Button on First Card */}
                                 {currentCard === 0 && (
                                     <motion.button
                                         onClick={toggleMute}
@@ -214,8 +255,6 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                                         )}
                                     </motion.button>
                                 )}
-
-
                             </div>
                         </motion.div>
                     );

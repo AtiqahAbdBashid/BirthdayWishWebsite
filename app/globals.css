@@ -57,3 +57,22 @@ body {
 .animate-slide-in {
   animation: slideIn 0.3s ease-out;
 }
+
+/* Aggressive mobile optimizations for flashcards */
+@media (max-width: 768px) {
+  .fixed.inset-0 {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    perspective: 1000;
+  }
+
+  /* Target all motion divs */
+  [style*="transform"] {
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    transform: translate3d(0, 0, 0) !important;
+  }
+}
