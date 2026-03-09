@@ -24,12 +24,12 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
 
     // SOLID colors - no opacity
     const cardColors = [
-        'from-[#FFD1DC] to-[#A7C7E7]',
-        'from-[#FDFD97] to-[#FFD1DC]',
-        'from-[#A7C7E7] to-[#FDFD97]',
-        'from-[#FFB3BA] to-[#C7CEEA]',
-        'from-[#B5EAD7] to-[#FFD1DC]',
-        'from-[#C7CEEA] to-[#B5EAD7]',
+        'from-[#E6E6FA] to-[#FFD1DC]', // Lavender Purple → Pink
+        'from-[#FFD1DC] to-[#B0E0E6]', // Pink → Baby Blue
+        'from-[#B0E0E6] to-[#E6E6FA]', // Baby Blue → Lavender Purple
+        'from-[#D8BFD8] to-[#FFB6C1]', // Medium Purple → Light Pink
+        'from-[#FFB6C1] to-[#ADD8E6]', // Light Pink → Light Blue
+        'from-[#ADD8E6] to-[#D8BFD8]', // Light Blue → Medium Purple
     ];
 
     const currentWish = wishes[currentIndex];
@@ -102,7 +102,7 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                 <div className={`bg-gradient-to-br ${cardColors[colorIndex]} rounded-2xl shadow-2xl overflow-hidden border-2 border-white/50`}>
                     {/* Semi-transparent overlay for text readability */}
                     <div className="p-6 bg-black/20 backdrop-blur-[2px]">
-                        <h3 className="text-xl font-bold text-white mb-2 drop-shadow-lg">
+                        <h3 className="text-xl font-bold text-[#d45673ff] mb-2 drop-shadow-lg">
                             {currentWish.name}
                         </h3>
 
