@@ -109,9 +109,11 @@ function DashboardContent() {
                 }}
             >
                 <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]"></div>
-                <div className="relative z-10 bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl">
-                    <div className="text-2xl animate-pulse" style={{ color: '#e33a61ff' }}>
-                        🎀 Loading Birthday Surprises... 🎀
+                <div className="relative z-10 flex items-center justify-center min-h-screen w-full">
+                    <div className="bg-[#FFD1DC]/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl max-w-md mx-auto">
+                        <div className="text-2xl animate-pulse text-center" style={{ color: '#d45673ff' }}>
+                            Loading Birthday Surprises...
+                        </div>
                     </div>
                 </div>
             </div>
@@ -215,13 +217,11 @@ function DashboardContent() {
                         </div>
                     </div>
 
-
-
-                    {/* SWIPE VIEW BUTTON - ADD HERE */}
+                    {/* Swipe view button */}
                     <div className="flex justify-center mb-4">
                         <button
                             onClick={() => setShowSwipeView(true)}
-                            className="px-6 py-3 bg-[##d45673ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
+                            className="px-6 py-3 bg-[#d45673ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 border-2 border-white/50"
                         >
                             View Wishes as Cards
                         </button>
@@ -389,7 +389,7 @@ export default function DashboardPage() {
                             color: '#your-text-color-here', // For text color
                         }}
                     >
-                        🎀 Loading Dashboard... 🎀
+                        Loading Dashboard...
                     </div>
                 </div>
             </div>
