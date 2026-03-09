@@ -158,13 +158,16 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                                 boxShadow: index === currentCard
                                     ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                                     : '0 15px 30px -10px rgba(0, 0, 0, 0.3)',
-                                WebkitBackfaceVisibility: 'hidden',
-                                backfaceVisibility: 'hidden',
-                                WebkitPerspective: 1000,
-                                perspective: 1000,
-                                transform: 'translate3d(0, 0, 0)',
-                                willChange: 'transform, opacity',
+                                ...(isCurrentCard ? {
+                                    WebkitBackfaceVisibility: 'hidden',
+                                    backfaceVisibility: 'hidden',
+                                    WebkitPerspective: 1000,
+                                    perspective: 1000,
+                                    transform: 'translate3d(0, 0, 0)',
+                                    willChange: 'transform, opacity',
+                                } : {}),
                             }}
+
                             animate={{
                                 scale: style.scale,
                                 rotate: `${style.rotate}deg`,
