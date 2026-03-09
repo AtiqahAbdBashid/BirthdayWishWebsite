@@ -82,7 +82,6 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
     };
 
     const getCardStyle = (index: number) => {
-        // SIMPLE: Only show current card, hide others
         if (index === currentCard) {
             return {
                 zIndex: 30,
@@ -91,15 +90,37 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
                 y: 0,
                 x: 0,
                 opacity: 1,
+                filter: 'brightness(1)',
+            };
+        } else if (index === currentCard - 1 || (currentCard === 0 && index === cards.length - 1)) {
+            return {
+                zIndex: 20,
+                scale: 0.92,
+                rotate: -4,
+                y: 12,
+                x: -8,
+                opacity: 0.7,
+                filter: 'brightness(0.7)',
+            };
+        } else if (index === currentCard - 2 || (currentCard === 1 && index === cards.length - 1) || (currentCard === 0 && index === cards.length - 2)) {
+            return {
+                zIndex: 10,
+                scale: 0.84,
+                rotate: 5,
+                y: 24,
+                x: 10,
+                opacity: 0.4,
+                filter: 'brightness(0.5)',
             };
         } else {
             return {
                 zIndex: 0,
-                scale: 0.9,
-                rotate: 0,
-                y: 0,
-                x: 0,
+                scale: 0.76,
+                rotate: -3,
+                y: 36,
+                x: -12,
                 opacity: 0,
+                filter: 'brightness(0.3)',
             };
         }
     };
