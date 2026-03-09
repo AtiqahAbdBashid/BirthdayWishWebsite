@@ -140,9 +140,13 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                         </p>
                     </div>
 
-                    <div className="bg-black/40 backdrop-blur-sm p-3 text-center text-sm text-white border-t border-white/30">
-                        ← Swipe left • Swipe right →
+                    <div
+                        key={`swipe-hint-${currentIndex}`}
+                        className="bg-black/40 backdrop-blur-sm p-3 text-center text-sm text-white border-t border-white/30"
+                    >
+                        ← Previous • Next →
                     </div>
+
                 </div>
             </motion.div>
 

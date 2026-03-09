@@ -105,13 +105,13 @@ function DashboardContent() {
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat',
-                    backgroundColor: '#ce6e84ff',
+                    backgroundColor: '#dca5b2ff',
                 }}
             >
                 <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]"></div>
                 <div className="relative z-10 flex items-center justify-center min-h-screen w-full">
-                    <div className="bg-[#FFD1DC]/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl max-w-md mx-auto">
-                        <div className="text-2xl animate-pulse text-center" style={{ color: '#d45673ff' }}>
+                    <div className="bg-[#FFD1DC]/30 backdrop-blur-xl p-8 rounded-2xl shadow-xl max-w-md mx-auto border border-white/50">
+                        <div className="text-2xl animate-pulse text-center" style={{ color: '#dca5b2ff' }}>
                             Loading Birthday Surprises...
                         </div>
                     </div>
