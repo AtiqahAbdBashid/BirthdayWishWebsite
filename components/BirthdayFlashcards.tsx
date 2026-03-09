@@ -16,6 +16,15 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
     const [direction, setDirection] = useState(0);
     const { isPlaying, isMuted, toggleMute } = useMusic();
     const [isMobile, setIsMobile] = useState(false);
+    const [videosLoaded, setVideosLoaded] = useState(false);
+    const [loadedCount, setLoadedCount] = useState(0);
+    const [isReady, setIsReady] = useState(false);
+
+    // Add ready state timeout
+    useEffect(() => {
+        const timer = setTimeout(() => setIsReady(true), 500);
+        return () => clearTimeout(timer);
+    }, []);
 
     // Check mobile on mount and resize
     useEffect(() => {
@@ -67,6 +76,16 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
         } else if (newDirection < 0 && currentCard > 0) {
             setCurrentCard(currentCard - 1);
         }
+    };
+
+    const handleVideoLoaded = () => {
+        setLoadedCount(prev => {
+            const newCount = prev + 1;
+            if (newCount === cards.length) {
+                setVideosLoaded(true);
+            }
+            return newCount;
+        });
     };
 
     const handleLastCard = () => {
@@ -153,162 +172,180 @@ export default function BirthdayFlashcards({ onComplete }: BirthdayFlashcardsPro
     };
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm flashcard-container"
-            style={{
-                willChange: 'transform',
-                transform: 'translateZ(0)'
-            }}
-        >
-            <div className="relative w-full max-w-md h-[600px] flex items-center justify-center pb-16">
-                {cards.map((card, index) => {
-                    const style = getCardStyle(index);
-                    const isCurrentCard = index === currentCard;
+        <>
+            {/* Loading Indicator - Shows while component initializes */}
+            {!isReady && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pastel-pink mx-auto mb-4"></div>
+                        <p className="text-gray-700 text-lg">Getting your surprise ready...</p>
+                        <p className="text-xs text-gray-400 mt-2">Just a moment</p>
+                    </div>
+                </div>
+            )}
 
-                    return (
-                        <motion.div
-                            key={card.id}
-                            className="absolute w-full flashcard-card"
-                            style={{
-                                zIndex: style.zIndex,
-                                scale: style.scale,
-                                rotate: `${style.rotate}deg`,
-                                y: style.y,
-                                x: style.x,
-                                opacity: style.opacity,
-                                filter: style.filter,
-                                pointerEvents: isCurrentCard ? 'auto' : 'none',
-                                transition: 'all 0.3s ease',
-                                transformOrigin: 'center center',
-                                borderRadius: '1rem',
-                                overflow: 'hidden',
-                                boxShadow: index === currentCard
-                                    ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-                                    : '0 15px 30px -10px rgba(0, 0, 0, 0.3)',
-                            }}
-                            animate={{
-                                scale: style.scale,
-                                rotate: `${style.rotate}deg`,
-                                y: style.y,
-                                x: style.x,
-                                opacity: style.opacity,
-                                filter: style.filter
-                            }}
-                            transition={{
-                                type: "spring",
-                                stiffness: isMobile ? 200 : 300,
-                                damping: isMobile ? 40 : 30,
-                                mass: isMobile ? 0.3 : 0.5,
-                            }}
-                            drag={isCurrentCard ? "x" : false}
-                            dragConstraints={{ left: 0, right: 0 }}
-                            dragElastic={0.2}
-                            onDragEnd={(e, { offset, velocity }) => {
-                                if (!isCurrentCard) return;
-                                const swipe = swipePower(offset.x, velocity.x);
+            {/* Main flashcard container - only show when ready */}
+            {isReady && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm flashcard-container"
+                    style={{
+                        willChange: 'transform',
+                        transform: 'translateZ(0)'
+                    }}
+                >
+                    <div className="relative w-full max-w-md h-[600px] flex items-center justify-center pb-16">
+                        {cards.map((card, index) => {
+                            const style = getCardStyle(index);
+                            const isCurrentCard = index === currentCard;
 
-                                if (swipe < -swipeConfidenceThreshold && currentCard < cards.length - 1) {
-                                    paginate(1);
-                                } else if (swipe > swipeConfidenceThreshold && currentCard > 0) {
-                                    paginate(-1);
-                                }
-                            }}
-                        >
-                            <div className="relative w-full h-full">
-                                {/* Video version - hardware accelerated */}
-                                <video
-                                    key={`video-${card.id}`}
-                                    autoPlay
-                                    loop
-                                    muted
-                                    playsInline
-                                    className="w-full h-auto rounded-xl"
+                            return (
+                                <motion.div
+                                    key={card.id}
+                                    className="absolute w-full flashcard-card"
                                     style={{
-                                        display: 'block',
-                                        width: '100%',
-                                        height: 'auto',
+                                        zIndex: style.zIndex,
+                                        scale: style.scale,
+                                        rotate: `${style.rotate}deg`,
+                                        y: style.y,
+                                        x: style.x,
+                                        opacity: style.opacity,
+                                        filter: style.filter,
+                                        pointerEvents: isCurrentCard ? 'auto' : 'none',
+                                        transition: 'all 0.3s ease',
+                                        transformOrigin: 'center center',
+                                        borderRadius: '1rem',
+                                        overflow: 'hidden',
+                                        boxShadow: index === currentCard
+                                            ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                            : '0 15px 30px -10px rgba(0, 0, 0, 0.3)',
+                                    }}
+                                    animate={{
+                                        scale: style.scale,
+                                        rotate: `${style.rotate}deg`,
+                                        y: style.y,
+                                        x: style.x,
+                                        opacity: style.opacity,
+                                        filter: style.filter
+                                    }}
+                                    transition={{
+                                        type: "spring",
+                                        stiffness: isMobile ? 200 : 300,
+                                        damping: isMobile ? 40 : 30,
+                                        mass: isMobile ? 0.3 : 0.5,
+                                    }}
+                                    drag={isCurrentCard ? "x" : false}
+                                    dragConstraints={{ left: 0, right: 0 }}
+                                    dragElastic={0.2}
+                                    onDragEnd={(e, { offset, velocity }) => {
+                                        if (!isCurrentCard) return;
+                                        const swipe = swipePower(offset.x, velocity.x);
+
+                                        if (swipe < -swipeConfidenceThreshold && currentCard < cards.length - 1) {
+                                            paginate(1);
+                                        } else if (swipe > swipeConfidenceThreshold && currentCard > 0) {
+                                            paginate(-1);
+                                        }
                                     }}
                                 >
-                                    <source src={`/videos/flashcards/card-${card.id}.mp4`} type="video/mp4" />
-                                    {/* Fallback to GIF if video fails */}
-                                    <img
-                                        src={card.gif}
-                                        alt={`Birthday card ${card.id}`}
-                                        className="w-full h-auto rounded-xl"
-                                    />
-                                </video>
+                                    <div className="relative w-full h-full">
+                                        {/* Video version - hardware accelerated */}
+                                        <video
+                                            key={`video-${card.id}`}
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                            preload="auto"
+                                            onLoadedData={handleVideoLoaded}
+                                            className="w-full h-auto rounded-xl"
+                                            style={{
+                                                display: 'block',
+                                                width: '100%',
+                                                height: 'auto',
+                                            }}
+                                        >
+                                            <source src={`/videos/flashcards/card-${card.id}.mp4`} type="video/mp4" />
+                                            {/* Fallback to GIF if video fails */}
+                                            <img
+                                                src={card.gif}
+                                                alt={`Birthday card ${card.id}`}
+                                                className="w-full h-auto rounded-xl"
+                                            />
+                                        </video>
 
-                                {/* Music Button on First Card */}
-                                {currentCard === 0 && (
-                                    <motion.button
-                                        onClick={toggleMute}
-                                        className="absolute z-[100] bottom-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-xl hover:scale-110 transition-all duration-300 border-2 border-pastel-pink"
-                                        animate={{
-                                            scale: [1, 1.1, 1],
-                                        }}
-                                        transition={{
-                                            duration: 1.5,
-                                            repeat: Infinity,
-                                            repeatType: "reverse"
-                                        }}
-                                        whileHover={{ scale: 1.2 }}
-                                    >
-                                        {!isMuted ? (
-                                            <Volume2 size={24} style={{ color: '#FFD1DC' }} />
-                                        ) : (
-                                            <VolumeX size={24} style={{ color: '#A7C7E7' }} />
+                                        {/* Music Button on First Card */}
+                                        {currentCard === 0 && (
+                                            <motion.button
+                                                onClick={toggleMute}
+                                                className="absolute z-[100] bottom-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-xl hover:scale-110 transition-all duration-300 border-2 border-pastel-pink"
+                                                animate={{
+                                                    scale: [1, 1.1, 1],
+                                                }}
+                                                transition={{
+                                                    duration: 1.5,
+                                                    repeat: Infinity,
+                                                    repeatType: "reverse"
+                                                }}
+                                                whileHover={{ scale: 1.2 }}
+                                            >
+                                                {!isMuted ? (
+                                                    <Volume2 size={24} style={{ color: '#FFD1DC' }} />
+                                                ) : (
+                                                    <VolumeX size={24} style={{ color: '#A7C7E7' }} />
+                                                )}
+                                            </motion.button>
                                         )}
-                                    </motion.button>
-                                )}
-                            </div>
-                        </motion.div>
-                    );
-                })}
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
 
-                {/* Navigation Buttons */}
-                <div className="absolute bottom-0 left-0 right-0 flex justify-center translate-y-full">
-                    {currentCard < cards.length - 1 ? (
-                        <button
-                            onClick={() => paginate(1)}
-                            className="px-6 py-2 text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform"
-                            style={{ backgroundColor: '#dca5b2ff' }}
-                        >
-                            Next →
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handleLastCard}
-                            className="px-6 py-2 text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform"
-                            style={{ backgroundColor: '#dca5b2ff' }}
-                        >
-                            ✨ Open Your Wishes ✨
-                        </button>
-                    )}
-                </div>
+                        {/* Navigation Buttons */}
+                        <div className="absolute bottom-0 left-0 right-0 flex justify-center translate-y-full">
+                            {currentCard < cards.length - 1 ? (
+                                <button
+                                    onClick={() => paginate(1)}
+                                    className="px-6 py-2 text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform"
+                                    style={{ backgroundColor: '#dca5b2ff' }}
+                                >
+                                    Next →
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleLastCard}
+                                    className="px-6 py-2 text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform"
+                                    style={{ backgroundColor: '#dca5b2ff' }}
+                                >
+                                    ✨ Open Your Wishes ✨
+                                </button>
+                            )}
+                        </div>
 
-                {/* Progress dots */}
-                <div className="absolute -bottom-12 left-0 right-0 flex justify-center gap-2">
-                    {cards.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => {
-                                playSwipe();
-                                setDirection(index > currentCard ? 1 : -1);
-                                setCurrentCard(index);
-                            }}
-                            className={`w-2 h-2 rounded-full transition-all ${index === currentCard
-                                ? 'w-6 bg-pastel-pink'
-                                : 'bg-white/50 hover:bg-white/80'
-                                }`}
-                        />
-                    ))}
-                </div>
+                        {/* Progress dots */}
+                        <div className="absolute -bottom-12 left-0 right-0 flex justify-center gap-2">
+                            {cards.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => {
+                                        playSwipe();
+                                        setDirection(index > currentCard ? 1 : -1);
+                                        setCurrentCard(index);
+                                    }}
+                                    className={`w-2 h-2 rounded-full transition-all ${index === currentCard
+                                        ? 'w-6 bg-pastel-pink'
+                                        : 'bg-white/50 hover:bg-white/80'
+                                        }`}
+                                />
+                            ))}
+                        </div>
 
-                {/* Swipe hint */}
-                <div className="absolute -bottom-24 left-0 right-0 text-center text-white/70 text-sm">
-                    ← Swipe to continue →
+                        {/* Swipe hint */}
+                        <div className="absolute -bottom-24 left-0 right-0 text-center text-white/70 text-sm">
+                            ← Swipe to continue →
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            )}
+        </>
     );
 }
