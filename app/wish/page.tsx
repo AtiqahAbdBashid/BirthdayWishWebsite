@@ -59,7 +59,7 @@ export default function WishPage() {
 
     // Add this with your other useEffects
     useEffect(() => {
-        const currentVersion = 'v2.2';
+        const currentVersion = 'v2.5';
         if (sessionStorage.getItem('appVersion') !== currentVersion) {
             sessionStorage.setItem('appVersion', currentVersion);
             window.location.reload();
