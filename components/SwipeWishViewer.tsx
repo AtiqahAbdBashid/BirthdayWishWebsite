@@ -22,7 +22,6 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
     const [currentIndex, setCurrentIndex] = useState(0);
     const [colorIndex, setColorIndex] = useState(0);
 
-    // Move cardColors BEFORE the useEffect that uses it
     const cardColors = [
         'from-pastel-pink/30 to-pastel-blue/30',
         'from-pastel-yellow/30 to-pastel-pink/30',
@@ -34,20 +33,39 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
 
     const currentWish = wishes[currentIndex];
 
-    // Now this useEffect can access cardColors
+    // Log when component mounts
     useEffect(() => {
-        // Cycle to next color when currentIndex changes
-        setColorIndex((prev) => (prev + 1) % cardColors.length);
+        console.log('SwipeViewer mounted');
+        console.log('Initial colorIndex:', colorIndex);
+        console.log('Card colors array:', cardColors);
+    }, []);
+
+    // Log when colorIndex changes
+    useEffect(() => {
+        console.log('colorIndex changed to:', colorIndex);
+        console.log('Current gradient:', cardColors[colorIndex]);
+    }, [colorIndex]);
+
+    // Log when currentIndex changes
+    useEffect(() => {
+        console.log('Swiped to wish index:', currentIndex);
+        console.log('Setting new colorIndex from', colorIndex, 'to', (colorIndex + 1) % cardColors.length);
+        setColorIndex((prev) => {
+            const newIndex = (prev + 1) % cardColors.length;
+            console.log('New colorIndex set to:', newIndex);
+            return newIndex;
+        });
     }, [currentIndex]);
 
     const handleSwipe = (event: any, info: PanInfo) => {
+        console.log('Swipe detected! Offset:', info.offset.x);
         if (info.offset.x < -50) {
-            // Swiped left -> Next wish
+            console.log('Swiped left - going to next wish');
             if (currentIndex < wishes.length - 1) {
                 setCurrentIndex(currentIndex + 1);
             }
         } else if (info.offset.x > 50) {
-            // Swiped right -> Previous wish
+            console.log('Swiped right - going to previous wish');
             if (currentIndex > 0) {
                 setCurrentIndex(currentIndex - 1);
             }
@@ -55,12 +73,14 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
     };
 
     const goToNext = () => {
+        console.log('Next button clicked');
         if (currentIndex < wishes.length - 1) {
             setCurrentIndex(currentIndex + 1);
         }
     };
 
     const goToPrevious = () => {
+        console.log('Previous button clicked');
         if (currentIndex > 0) {
             setCurrentIndex(currentIndex - 1);
         }
@@ -84,7 +104,6 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
 
     return (
         <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
-            {/* Close button */}
             <button
                 onClick={onClose}
                 className="absolute top-4 right-4 z-50 bg-white/80 text-gray-700 rounded-full p-2 hover:bg-white transition-colors shadow-lg"
@@ -92,12 +111,10 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                 <X size={20} />
             </button>
 
-            {/* Progress indicator */}
             <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/80 text-gray-700 px-4 py-1 rounded-full text-sm shadow-lg">
                 {currentIndex + 1} / {wishes.length}
             </div>
 
-            {/* Swipeable card */}
             <motion.div
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
@@ -105,10 +122,10 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                 onDragEnd={handleSwipe}
                 className="w-full max-w-md cursor-grab active:cursor-grabbing"
             >
-                {/* Use colorIndex to dynamically apply the gradient */}
+                {/* Use a simple background color first to test */}
                 <div className={`bg-gradient-to-br ${cardColors[colorIndex]} rounded-2xl shadow-2xl overflow-hidden border-2 border-white/50`}>
                     <div className="p-6 bg-white/80 backdrop-blur-sm">
-                        <h3 className="text-xl font-bold text-pastel-grey mb-2">
+                        <h3 className="text-xl font-bold text-pastel-pink mb-2">
                             {currentWish.name}
                         </h3>
 
@@ -147,12 +164,11 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                     </div>
 
                     <div className="bg-white/80 backdrop-blur-sm p-3 text-center text-sm text-gray-600 border-t border-white/50">
-                        ← Previous • Next →
+                        ← Swipe left • Swipe right →
                     </div>
                 </div>
             </motion.div>
 
-            {/* Navigation buttons */}
             <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4">
                 <button
                     onClick={goToPrevious}
