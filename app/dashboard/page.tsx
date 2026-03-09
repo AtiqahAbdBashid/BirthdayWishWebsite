@@ -221,7 +221,7 @@ function DashboardContent() {
                     <div className="flex justify-center mb-4">
                         <button
                             onClick={() => setShowSwipeView(true)}
-                            className="px-6 py-3 bg-[#d45673ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 border-2 border-white/50"
+                            className="px-6 py-3 bg-[#dca5b2ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 border-2 border-white/50"
                         >
                             View Wishes as Cards
                         </button>
