@@ -58,9 +58,8 @@ export default function PasswordPopup({ onClose }: Props) {
                 >
                     <X size={24} />
                 </button>
-
-                <h2 className="text-3xl font-bold mb-2 text-center" style={{ color: '#cb7d8fff' }}>
-                    🎀  Secret Surprise  🎀
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-center whitespace-nowrap" style={{ color: '#cb7d8fff' }}>
+                    🎀 Secret Surprise 🎀
                 </h2>
                 <p className="text-center text-gray-600 mb-6">
                     Enter the password to view your birthday surprise
