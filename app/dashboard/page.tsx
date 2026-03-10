@@ -62,15 +62,6 @@ function DashboardContent() {
         }
     }, [showFlashcards, setButtonPosition]);
 
-    // Add this useEffect to track when swipe view opens - MOVED UP HERE
-    useEffect(() => {
-        console.log('🔄 showSwipeView changed to:', showSwipeView);
-        if (showSwipeView) {
-            console.log('📦 Wishes for swipe:', allWishesForSwipe);
-            console.log('🎯 First wish:', allWishesForSwipe[0]);
-        }
-    }, [showSwipeView, allWishesForSwipe]);
-
     const loadWishes = async () => {
         try {
             const { data, error } = await supabase
@@ -99,7 +90,7 @@ function DashboardContent() {
         router.push('/');
     };
 
-    // Define filteredWishes FIRST (before using it)
+    // Define filteredWishes FIRST
     const filteredWishes = wishes.filter(wish => {
         if (activeTab === 'all') return true;
         if (activeTab === 'text') return wish.type === 'text';
@@ -119,8 +110,17 @@ We love you! 💕 - Atiqah`,
         created_at: new Date().toISOString(),
     };
 
-    // Force special message to be first, regardless of showSpecialMessage
+    // Define allWishesForSwipe HERE
     const allWishesForSwipe = [specialWish, ...filteredWishes];
+
+    // ✅ MOVED THIS useEffect HERE - AFTER allWishesForSwipe is defined
+    useEffect(() => {
+        console.log('🔄 showSwipeView changed to:', showSwipeView);
+        if (showSwipeView) {
+            console.log('📦 Wishes for swipe:', allWishesForSwipe);
+            console.log('🎯 First wish:', allWishesForSwipe[0]);
+        }
+    }, [showSwipeView, allWishesForSwipe]);
 
     // After defining allWishesForSwipe
     console.log('showSwipeView:', showSwipeView);
