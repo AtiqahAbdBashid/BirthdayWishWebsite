@@ -29,7 +29,7 @@ function DashboardContent() {
     const [selectedImageName, setSelectedImageName] = useState<string>('');
     const [showFlashcards, setShowFlashcards] = useState(false);
     const [showSpecialMessage, setShowSpecialMessage] = useState(true);
-    const { setButtonPosition } = useMusic(); // Get the setter
+    const { setButtonPosition } = useMusic();
     const [showSwipeView, setShowSwipeView] = useState(false);
 
     const router = useRouter();
@@ -90,29 +90,31 @@ function DashboardContent() {
         router.push('/');
     };
 
-    const specialWish = {
-        id: 'special-message',
-        name: 'Atiqah', // Your name
-        type: 'text' as const,
-        message: `Happy Birthday, Lynda! I made this for you as I want your 20th
-to be a memorable one. I hope this can be something you can keep as a
-memory for the rest of your life.
-We love you! 💕 - Atiqah`,
-        file_url: '/images/photo.jpg', // Optional: include your photo
-        created_at: new Date().toISOString(),
-    };
-
-    // Combine special message with wishes
-    const allWishesForSwipe = showSpecialMessage
-        ? [specialWish, ...filteredWishes]
-        : filteredWishes;
-
+    // Define filteredWishes FIRST (before using it)
     const filteredWishes = wishes.filter(wish => {
         if (activeTab === 'all') return true;
         if (activeTab === 'text') return wish.type === 'text';
         if (activeTab === 'media') return wish.type === 'image' || wish.type === 'video';
         return true;
     });
+
+    // Then define specialWish
+    const specialWish = {
+        id: 'special-message',
+        name: 'Atiqah',
+        type: 'text' as const,
+        message: `Happy Birthday, Lynda! I made this for you as I want your 20th
+to be a memorable one. I hope this can be something you can keep as a
+memory for the rest of your life.
+We love you! 💕 - Atiqah`,
+        file_url: '/images/photo.jpg',
+        created_at: new Date().toISOString(),
+    };
+
+    // Then combine them (NOW filteredWishes exists)
+    const allWishesForSwipe = showSpecialMessage
+        ? [specialWish, ...filteredWishes]
+        : filteredWishes;
 
     if (!isAuthenticated || loading) {
         return (
@@ -154,10 +156,9 @@ We love you! 💕 - Atiqah`,
                 <BirthdayFlashcards
                     onComplete={() => {
                         setShowFlashcards(false);
-                        // Auto-show swipe view after flashcards
                         setTimeout(() => {
                             setShowSwipeView(true);
-                        }, 500); // Small delay for smooth transition
+                        }, 500);
                     }}
                 />
             )}
@@ -235,7 +236,6 @@ We love you! 💕 - Atiqah`,
                         </div>
                     </div>
 
-                    {/* Swipe view button */}
                     <div className="flex justify-center mb-4">
                         <button
                             onClick={() => setShowSwipeView(true)}
@@ -377,17 +377,17 @@ We love you! 💕 - Atiqah`,
                         </div>
                     )}
                 </main>
-            </div >
+            </div>
+
             {/* SWIPE VIEWER */}
             {showSwipeView && (
                 <SwipeWishViewer
                     wishes={allWishesForSwipe}
                     onClose={() => setShowSwipeView(false)}
-                    onSpecialMessageShown={() => setShowSpecialMessage(false)} // Optional: hide after showing
+                    onSpecialMessageShown={() => setShowSpecialMessage(false)}
                 />
             )}
-        </div >
-
+        </div>
     );
 }
 
@@ -396,18 +396,8 @@ export default function DashboardPage() {
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center">
-                <div
-                    className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl"
-                    style={{
-                        backgroundColor: '#your-box-color-here', // For box background
-                    }}
-                >
-                    <div
-                        className="text-2xl animate-pulse"
-                        style={{
-                            color: '#your-text-color-here', // For text color
-                        }}
-                    >
+                <div className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl">
+                    <div className="text-2xl animate-pulse text-center" style={{ color: '#dca5b2ff' }}>
                         Loading Dashboard...
                     </div>
                 </div>
@@ -415,6 +405,5 @@ export default function DashboardPage() {
         }>
             <DashboardContent />
         </Suspense>
-
     );
 }
