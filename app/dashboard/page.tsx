@@ -143,6 +143,24 @@ We love you! 💕 - Atiqah`,
             </div>
         );
     }
+    // Add this useEffect to track when swipe view opens
+    useEffect(() => {
+        console.log('🔄 showSwipeView changed to:', showSwipeView);
+        if (showSwipeView) {
+            console.log('📦 Wishes for swipe:', allWishesForSwipe);
+            console.log('🎯 First wish:', allWishesForSwipe[0]);
+        }
+    }, [showSwipeView, allWishesForSwipe]);
+
+    // Also add this to see when flashcards complete
+    const handleFlashcardComplete = () => {
+        console.log('🎴 Flashcards completed');
+        setShowFlashcards(false);
+        setTimeout(() => {
+            console.log('⏰ Opening swipe view');
+            setShowSwipeView(true);
+        }, 500);
+    };
 
     return (
         <div
