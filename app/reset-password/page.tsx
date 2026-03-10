@@ -15,43 +15,66 @@ export default function ResetPasswordPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [passwordMatch, setPasswordMatch] = useState(true);
+    const [isValidSession, setIsValidSession] = useState(false);
+    const [checking, setChecking] = useState(true);
 
     const router = useRouter();
     const supabase = createClient();
 
-    // Check if we have a session (user came from reset email)
     useEffect(() => {
         const handleResetPassword = async () => {
-            console.log('Reset page mounted');
+            try {
+                console.log('1. Reset page mounted');
+                console.log('2. Full URL:', window.location.href);
+                console.log('3. Hash:', window.location.hash);
 
-            // Check if there's a session
-            const { data: { session } } = await supabase.auth.getSession();
-            console.log('Session:', session);
+                // Check if there's a session first
+                const { data: { session } } = await supabase.auth.getSession();
+                console.log('4. Existing session:', session);
 
-            // If there's no session, check the URL for tokens
-            if (!session) {
-                // The token might be in the URL hash
+                if (session) {
+                    console.log('5. Session found - user is authenticated');
+                    setIsValidSession(true);
+                    setChecking(false);
+                    return;
+                }
+
+                // Check URL for tokens
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 const accessToken = hashParams.get('access_token');
                 const refreshToken = hashParams.get('refresh_token');
+                const type = hashParams.get('type');
 
-                console.log('Tokens from URL:', { accessToken, refreshToken });
+                console.log('6. URL tokens:', { accessToken, refreshToken, type });
 
-                // If we have tokens, set the session
-                if (accessToken) {
-                    await supabase.auth.setSession({
+                if (accessToken && type === 'recovery') {
+                    console.log('7. Recovery token found, setting session...');
+
+                    // Set the session with the tokens
+                    const { error: sessionError } = await supabase.auth.setSession({
                         access_token: accessToken,
                         refresh_token: refreshToken || '',
                     });
 
-                    // Now check session again
-                    const { data: { session: newSession } } = await supabase.auth.getSession();
-                    console.log('New session after setting:', newSession);
+                    if (sessionError) {
+                        console.error('8. Session error:', sessionError);
+                        setError('Invalid or expired reset link. Please request a new one.');
+                        setTimeout(() => router.push('/login'), 3000);
+                    } else {
+                        console.log('9. Session set successfully');
+                        setIsValidSession(true);
+                    }
                 } else {
-                    // No tokens and no session - link might be expired
-                    console.log('No tokens found - redirecting to login');
-                    router.push('/login?error=expired');
+                    console.log('10. No valid recovery token found');
+                    setError('Invalid or expired reset link. Please request a new one.');
+                    setTimeout(() => router.push('/login'), 3000);
                 }
+            } catch (err) {
+                console.error('11. Unexpected error:', err);
+                setError('An error occurred. Please try again.');
+                setTimeout(() => router.push('/login'), 3000);
+            } finally {
+                setChecking(false);
             }
         };
 
@@ -93,18 +116,47 @@ export default function ResetPasswordPage() {
 
             setMessage('Password updated successfully! Redirecting to login...');
 
-            // Sign out after password reset (optional, but good practice)
+            // Sign out after password reset
             await supabase.auth.signOut();
 
             setTimeout(() => {
                 router.push('/login');
             }, 2000);
         } catch (error: any) {
+            console.error('Password update error:', error);
             setError(error.message || 'Failed to reset password');
         } finally {
             setLoading(false);
         }
     };
+
+    if (checking) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pastel-pink/20 via-pastel-blue/20 to-pastel-yellow/20">
+                <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pastel-pink mx-auto"></div>
+                    <p className="text-center mt-4 text-gray-600">Verifying your link...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!isValidSession && !checking) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-pastel-pink/20 via-pastel-blue/20 to-pastel-yellow/20 p-4 flex items-center justify-center">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 max-w-md text-center">
+                    <h2 className="text-2xl font-bold text-red-500 mb-4">Link Expired or Invalid</h2>
+                    <p className="text-gray-600 mb-6">This password reset link is no longer valid. Please request a new one.</p>
+                    <Link
+                        href="/login"
+                        className="inline-block px-6 py-3 bg-pastel-pink text-white rounded-lg hover:scale-105 transition-transform"
+                    >
+                        Go to Login
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-pastel-pink/20 via-pastel-blue/20 to-pastel-yellow/20 p-4">
