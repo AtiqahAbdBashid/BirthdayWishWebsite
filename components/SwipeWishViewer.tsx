@@ -4,6 +4,7 @@ import { motion, PanInfo } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+
 interface Wish {
     id: string;
     name: string;
@@ -22,6 +23,7 @@ interface SwipeWishViewerProps {
 export default function SwipeWishViewer({ wishes, onClose, onSpecialMessageShown }: SwipeWishViewerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [colorIndex, setColorIndex] = useState(0);
+
 
     // SOLID colors - no opacity
     const cardColors = [
@@ -111,8 +113,8 @@ export default function SwipeWishViewer({ wishes, onClose, onSpecialMessageShown
                 <div className={`bg-gradient-to-br ${cardColors[colorIndex]} rounded-2xl shadow-2xl overflow-hidden border-2 border-white/50`}>
                     {/* Special message badge for first card */}
                     {currentIndex === 0 && currentWish.id === 'special-message' && (
-                        <div className="absolute top-2 left-2 bg-yellow-300 text-xs px-2 py-1 rounded-full z-10">
-                            💝 Special Message
+                        <div className="absolute top-2 left-2 bg-[#A7C7E7] text-xs px-2 py-1 rounded-full z-10 text-white">
+                            Special Message For You
                         </div>
                     )}
 

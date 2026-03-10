@@ -399,16 +399,6 @@ We love you! 💕 - Atiqah`,
                 </main>
             </div>
 
-            {/* 🔴 TEMPORARY TEST BUTTON */}
-            <div className="flex justify-center mb-2">
-                <button
-                    onClick={() => alert('✅ Test button working!')}
-                    className="px-4 py-2 bg-red-500 text-white rounded"
-                >
-                    Click me to test if buttons work
-                </button>
-            </div>
-
             {/* SWIPE VIEWER */}
             {showSwipeView && (
                 <SwipeWishViewer
