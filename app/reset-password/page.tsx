@@ -21,14 +21,41 @@ export default function ResetPasswordPage() {
 
     // Check if we have a session (user came from reset email)
     useEffect(() => {
-        const checkSession = async () => {
+        const handleResetPassword = async () => {
+            console.log('Reset page mounted');
+
+            // Check if there's a session
             const { data: { session } } = await supabase.auth.getSession();
+            console.log('Session:', session);
+
+            // If there's no session, check the URL for tokens
             if (!session) {
-                // No session means they didn't come from a valid reset link
-                router.push('/login');
+                // The token might be in the URL hash
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token');
+
+                console.log('Tokens from URL:', { accessToken, refreshToken });
+
+                // If we have tokens, set the session
+                if (accessToken) {
+                    await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken || '',
+                    });
+
+                    // Now check session again
+                    const { data: { session: newSession } } = await supabase.auth.getSession();
+                    console.log('New session after setting:', newSession);
+                } else {
+                    // No tokens and no session - link might be expired
+                    console.log('No tokens found - redirecting to login');
+                    router.push('/login?error=expired');
+                }
             }
         };
-        checkSession();
+
+        handleResetPassword();
     }, [router, supabase]);
 
     // Check password match
