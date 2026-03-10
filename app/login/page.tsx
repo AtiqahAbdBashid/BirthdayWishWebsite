@@ -123,13 +123,23 @@ function LoginForm() {
         setMessage('');
 
         try {
-            // Request an OTP code for password reset
-            const { error } = await supabase.auth.resetPasswordForEmail(email);
+            console.log('🔐 Requesting password reset OTP for:', email);
+
+            // Request OTP for password reset
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password-code`,
+            });
 
             if (error) throw error;
 
-            // Redirect to a page where they can enter the code
-            router.push(`/reset-password-code?email=${encodeURIComponent(email)}`);
+            // Note: Even with this, Supabase might still send a link by default
+            // We need to configure the email template in Supabase dashboard
+
+            setMessage('If an account exists, you will receive a reset code shortly.');
+
+            // Don't redirect immediately - wait for them to get the code
+            // router.push(`/reset-password-code?email=${encodeURIComponent(email)}`);
+
         } catch (error: any) {
             console.error('Reset error:', error);
             setError(error.message || 'Failed to send reset code');
