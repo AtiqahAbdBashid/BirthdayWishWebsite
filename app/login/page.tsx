@@ -123,26 +123,16 @@ function LoginForm() {
         setMessage('');
 
         try {
-            // Debug logging
-            console.log('🔐 FORGOT PASSWORD DEBUG:');
-            console.log('Email:', email);
-            console.log('Origin:', window.location.origin);
-
-            const redirectUrl = `${window.location.origin}/reset-password`;
-            console.log('Redirect URL:', redirectUrl);
-
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: redirectUrl,
-            });
-
-            console.log('Supabase response:', { error });
+            // Request an OTP code for password reset
+            const { error } = await supabase.auth.resetPasswordForEmail(email);
 
             if (error) throw error;
 
-            setMessage('Password reset link sent! Check your email (including spam).');
+            // Redirect to a page where they can enter the code
+            router.push(`/reset-password-code?email=${encodeURIComponent(email)}`);
         } catch (error: any) {
             console.error('Reset error:', error);
-            setError(error.message || 'Failed to send reset email');
+            setError(error.message || 'Failed to send reset code');
         } finally {
             setLoading(false);
         }
