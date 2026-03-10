@@ -222,11 +222,7 @@ We love you! 💕 - Atiqah`,
                                     A Special Message for You
                                 </h2>
                                 <p className="text-gray-700 text-lg">
-                                    Happy Birthday, Lynda! I made this for you as I want your 20th
-                                    to be a memorable one. I hope this can be something you can keep as a
-                                    memory for the rest of your life.
-                                    Here's a collection of birthday wishes from everyone who appreciates you.
-                                    We love you! 💕 - Atiqah
+                                    Happy Birthday, Lynda! I made this for you as I want your 20th to be a memorable one. I hope this can be something you can keep as a memory for the rest of your life. Here's a collection of birthday wishes from everyone who appreciates you. We love you! 💕
                                 </p>
                             </div>
                         </div>
