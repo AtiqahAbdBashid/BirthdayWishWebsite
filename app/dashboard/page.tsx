@@ -62,6 +62,15 @@ function DashboardContent() {
         }
     }, [showFlashcards, setButtonPosition]);
 
+    // Add this useEffect to track when swipe view opens - MOVED UP HERE
+    useEffect(() => {
+        console.log('🔄 showSwipeView changed to:', showSwipeView);
+        if (showSwipeView) {
+            console.log('📦 Wishes for swipe:', allWishesForSwipe);
+            console.log('🎯 First wish:', allWishesForSwipe[0]);
+        }
+    }, [showSwipeView, allWishesForSwipe]);
+
     const loadWishes = async () => {
         try {
             const { data, error } = await supabase
@@ -106,14 +115,12 @@ function DashboardContent() {
 to be a memorable one. I hope this can be something you can keep as a
 memory for the rest of your life.
 We love you! 💕 - Atiqah`,
-        file_url: '/images/photo.jpg',  // This was already there
-        created_at: new Date().toISOString(),  // This was missing!
+        file_url: '/images/photo.jpg',
+        created_at: new Date().toISOString(),
     };
 
-    // Then combine them (NOW filteredWishes exists)
-    const allWishesForSwipe = showSpecialMessage
-        ? [specialWish, ...filteredWishes]
-        : filteredWishes;
+    // Force special message to be first, regardless of showSpecialMessage
+    const allWishesForSwipe = [specialWish, ...filteredWishes];
 
     // After defining allWishesForSwipe
     console.log('showSwipeView:', showSwipeView);
@@ -143,16 +150,7 @@ We love you! 💕 - Atiqah`,
             </div>
         );
     }
-    // Add this useEffect to track when swipe view opens
-    useEffect(() => {
-        console.log('🔄 showSwipeView changed to:', showSwipeView);
-        if (showSwipeView) {
-            console.log('📦 Wishes for swipe:', allWishesForSwipe);
-            console.log('🎯 First wish:', allWishesForSwipe[0]);
-        }
-    }, [showSwipeView, allWishesForSwipe]);
 
-    // Also add this to see when flashcards complete
     const handleFlashcardComplete = () => {
         console.log('🎴 Flashcards completed');
         setShowFlashcards(false);
@@ -176,12 +174,7 @@ We love you! 💕 - Atiqah`,
         >
             {showFlashcards && (
                 <BirthdayFlashcards
-                    onComplete={() => {
-                        setShowFlashcards(false);
-                        setTimeout(() => {
-                            setShowSwipeView(true);
-                        }, 500);
-                    }}
+                    onComplete={handleFlashcardComplete}
                 />
             )}
             <MusicButton />
