@@ -22,6 +22,7 @@ export default function ResetPasswordPage() {
     const router = useRouter();
     const supabase = createClient();
 
+    // Check if we have a session (user came from reset email)
     useEffect(() => {
         const handleResetPassword = async () => {
             const debug: any = {
@@ -105,6 +106,56 @@ export default function ResetPasswordPage() {
         handleResetPassword();
     }, [router, supabase]);
 
+    // Check password match
+    useEffect(() => {
+        if (confirmPassword) {
+            setPasswordMatch(password === confirmPassword);
+        } else {
+            setPasswordMatch(true);
+        }
+    }, [password, confirmPassword]);
+
+    // Define handleResetPassword BEFORE it's used in the return
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+        setMessage('');
+
+        try {
+            const { error } = await supabase.auth.updateUser({
+                password: password
+            });
+
+            if (error) throw error;
+
+            setMessage('Password updated successfully! Redirecting to login...');
+
+            // Sign out after password reset
+            await supabase.auth.signOut();
+
+            setTimeout(() => {
+                router.push('/login');
+            }, 2000);
+        } catch (error: any) {
+            console.error('Password update error:', error);
+            setError(error.message || 'Failed to reset password');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (checking) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pastel-pink/20 via-pastel-blue/20 to-pastel-yellow/20">
@@ -170,7 +221,6 @@ export default function ResetPasswordPage() {
                     </div>
 
                     <form onSubmit={handleResetPassword} className="space-y-5">
-                        {/* ... rest of your form ... */}
                         <div>
                             <label className="block text-sm font-medium text-gray-800 mb-2">
                                 New Password *
