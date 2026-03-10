@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '../../lib/supabase/client';
-import { ArrowLeft, Mail, Lock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 
 // Main page component
 export default function LoginPage() {
@@ -53,12 +53,16 @@ export default function LoginPage() {
 function LoginForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
     const [isLogin, setIsLogin] = useState(true);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [showConfirmed, setShowConfirmed] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [passwordMatch, setPasswordMatch] = useState(true);
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -66,6 +70,15 @@ function LoginForm() {
     const confirmed = searchParams.get('confirmed') === 'true';
     const errorParam = searchParams.get('error');
     const supabase = createClient();
+
+    // Check password match on signup
+    useEffect(() => {
+        if (!isLogin && confirmPassword) {
+            setPasswordMatch(password === confirmPassword);
+        } else {
+            setPasswordMatch(true);
+        }
+    }, [password, confirmPassword, isLogin]);
 
     // Set confirmed message from URL
     useEffect(() => {
@@ -99,6 +112,31 @@ function LoginForm() {
         checkUser();
     }, [router, supabase]);
 
+    const handleForgotPassword = async () => {
+        if (!email) {
+            setError('Please enter your email address first');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+        setMessage('');
+
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`,
+            });
+
+            if (error) throw error;
+
+            setMessage('Password reset link sent! Check your email (including spam).');
+        } catch (error: any) {
+            setError(error.message || 'Failed to send reset email');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -122,6 +160,13 @@ function LoginForm() {
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate passwords match
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
         setLoading(true);
         setError('');
         setMessage('');
@@ -149,6 +194,7 @@ function LoginForm() {
             setMessage('Check your email for the verification code!');
             setEmail('');
             setPassword('');
+            setConfirmPassword('');
             setName('');
 
             // Redirect to verify page
@@ -206,20 +252,73 @@ function LoginForm() {
                 <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
                     <input
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:outline-none transition-colors text-gray-900 placeholder-gray-500"
+                        className="w-full pl-10 pr-12 py-3 border-2 rounded-xl focus:outline-none transition-colors text-gray-900 placeholder-gray-500"
                         style={{ borderColor: '#A7C7E7' }}
                         placeholder={isLogin ? 'Enter your password' : 'Create password (min 6 characters)'}
                         required
                         minLength={6}
                     />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
                 </div>
-                {!isLogin && (
-                    <p className="text-xs text-gray-600 mt-1">Password must be at least 6 characters</p>
+
+                {isLogin && (
+                    <div className="text-right mt-2">
+                        <button
+                            type="button"
+                            onClick={handleForgotPassword}
+                            className="text-sm text-pastel-blue hover:underline"
+                            style={{ color: '#3a84ceff' }}
+                        >
+                            Forgot password?
+                        </button>
+                    </div>
                 )}
             </div>
+
+            {/* Password confirmation for signup */}
+            {!isLogin && (
+                <div>
+                    <label className="block text-sm font-medium text-gray-800 mb-2">
+                        Confirm Password *
+                    </label>
+                    <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
+                        <input
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl focus:outline-none transition-colors text-gray-900 placeholder-gray-500 ${!passwordMatch && confirmPassword ? 'border-red-500' : ''
+                                }`}
+                            style={{ borderColor: !passwordMatch && confirmPassword ? '#ef4444' : '#A7C7E7' }}
+                            placeholder="Confirm your password"
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
+                    {!passwordMatch && confirmPassword && (
+                        <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                    )}
+                    {passwordMatch && confirmPassword && password.length >= 6 && (
+                        <p className="text-xs text-green-500 mt-1">✓ Passwords match</p>
+                    )}
+                    <p className="text-xs text-gray-600 mt-1">Password must be at least 6 characters</p>
+                </div>
+            )}
 
             {error && (
                 <div className="bg-red-100 border border-red-300 text-red-700 p-4 rounded-xl text-sm">
@@ -241,13 +340,16 @@ function LoginForm() {
                             <p className="mt-1">We couldn't confirm your email. Please try signing up again.</p>
                         </div>
                     )}
+                    {error === 'Passwords do not match' && (
+                        <p>❌ {error}</p>
+                    )}
                     {error === 'unknown' && (
                         <div>
                             <p className="font-medium">❓ Unknown Error</p>
                             <p className="mt-1">An unexpected error occurred. Please try again.</p>
                         </div>
                     )}
-                    {error && !['Invalid login credentials', 'Email not confirmed', 'expired', 'confirmation_failed', 'unknown'].includes(error) && (
+                    {error && !['Invalid login credentials', 'Email not confirmed', 'expired', 'confirmation_failed', 'unknown', 'Passwords do not match'].includes(error) && (
                         <p>{error}</p>
                     )}
                 </div>
@@ -267,7 +369,7 @@ function LoginForm() {
 
             <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (!isLogin && !passwordMatch)}
                 className="w-full py-4 rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{ backgroundColor: '#d45673ff' }}
             >
@@ -288,6 +390,10 @@ function LoginForm() {
                         setIsLogin(!isLogin);
                         setError('');
                         setMessage('');
+                        setPassword('');
+                        setConfirmPassword('');
+                        setShowPassword(false);
+                        setShowConfirmPassword(false);
                     }}
                     className="text-sm text-pastel-blue hover:underline"
                     style={{ color: '#3a84ceff' }}
