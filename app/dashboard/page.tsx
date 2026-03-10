@@ -98,23 +98,27 @@ function DashboardContent() {
         return true;
     });
 
-    // Then define specialWish
-    const specialWish = {
+    const specialWish: Wish = {
         id: 'special-message',
         name: 'Atiqah',
-        type: 'text' as const,
+        type: 'text',
         message: `Happy Birthday, Lynda! I made this for you as I want your 20th
 to be a memorable one. I hope this can be something you can keep as a
 memory for the rest of your life.
 We love you! 💕 - Atiqah`,
-        file_url: '/images/photo.jpg',
-        created_at: new Date().toISOString(),
+        file_url: '/images/photo.jpg',  // This was already there
+        created_at: new Date().toISOString(),  // This was missing!
     };
 
     // Then combine them (NOW filteredWishes exists)
     const allWishesForSwipe = showSpecialMessage
         ? [specialWish, ...filteredWishes]
         : filteredWishes;
+
+    // After defining allWishesForSwipe
+    console.log('showSwipeView:', showSwipeView);
+    console.log('allWishesForSwipe length:', allWishesForSwipe.length);
+    console.log('First wish:', allWishesForSwipe[0]);
 
     if (!isAuthenticated || loading) {
         return (
@@ -238,7 +242,11 @@ We love you! 💕 - Atiqah`,
 
                     <div className="flex justify-center mb-4">
                         <button
-                            onClick={() => setShowSwipeView(true)}
+                            onClick={() => {
+                                console.log('🔴 Button clicked! showSwipeView was:', showSwipeView);
+                                setShowSwipeView(true);
+                                console.log('✅ showSwipeView set to true');
+                            }}
                             className="px-6 py-3 bg-[#dca5b2ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 border-2 border-white/50"
                         >
                             View Wishes as Cards
@@ -377,6 +385,16 @@ We love you! 💕 - Atiqah`,
                         </div>
                     )}
                 </main>
+            </div>
+
+            {/* 🔴 TEMPORARY TEST BUTTON */}
+            <div className="flex justify-center mb-2">
+                <button
+                    onClick={() => alert('✅ Test button working!')}
+                    className="px-4 py-2 bg-red-500 text-white rounded"
+                >
+                    Click me to test if buttons work
+                </button>
             </div>
 
             {/* SWIPE VIEWER */}
