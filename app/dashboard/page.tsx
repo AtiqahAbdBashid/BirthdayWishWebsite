@@ -28,6 +28,7 @@ function DashboardContent() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedImageName, setSelectedImageName] = useState<string>('');
     const [showFlashcards, setShowFlashcards] = useState(false);
+    const [showSpecialMessage, setShowSpecialMessage] = useState(true);
     const { setButtonPosition } = useMusic(); // Get the setter
     const [showSwipeView, setShowSwipeView] = useState(false);
 
@@ -89,6 +90,23 @@ function DashboardContent() {
         router.push('/');
     };
 
+    const specialWish = {
+        id: 'special-message',
+        name: 'Atiqah', // Your name
+        type: 'text' as const,
+        message: `Happy Birthday, Lynda! I made this for you as I want your 20th
+to be a memorable one. I hope this can be something you can keep as a
+memory for the rest of your life.
+We love you! 💕 - Atiqah`,
+        file_url: '/images/photo.jpg', // Optional: include your photo
+        created_at: new Date().toISOString(),
+    };
+
+    // Combine special message with wishes
+    const allWishesForSwipe = showSpecialMessage
+        ? [specialWish, ...filteredWishes]
+        : filteredWishes;
+
     const filteredWishes = wishes.filter(wish => {
         if (activeTab === 'all') return true;
         if (activeTab === 'text') return wish.type === 'text';
@@ -112,7 +130,7 @@ function DashboardContent() {
                 <div className="relative z-10 flex items-center justify-center min-h-screen w-full px-4">
                     <div className="text-center">
                         <div className="text-base sm:text-lg md:text-xl animate-pulse whitespace-nowrap" style={{ color: '#dca5b2ff' }}>
-                            🎀 Loading Birthday Surprises... 🎀
+                            Loading Birthday Surprises...
                         </div>
                     </div>
                 </div>
@@ -360,11 +378,12 @@ function DashboardContent() {
                     )}
                 </main>
             </div >
-            {/* SWIPE VIEWER - ADD HERE */}
+            {/* SWIPE VIEWER */}
             {showSwipeView && (
                 <SwipeWishViewer
-                    wishes={filteredWishes}
+                    wishes={allWishesForSwipe}
                     onClose={() => setShowSwipeView(false)}
+                    onSpecialMessageShown={() => setShowSpecialMessage(false)} // Optional: hide after showing
                 />
             )}
         </div >

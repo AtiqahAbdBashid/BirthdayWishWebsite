@@ -16,9 +16,10 @@ interface Wish {
 interface SwipeWishViewerProps {
     wishes: Wish[];
     onClose: () => void;
+    onSpecialMessageShown?: () => void;
 }
 
-export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProps) {
+export default function SwipeWishViewer({ wishes, onClose, onSpecialMessageShown }: SwipeWishViewerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [colorIndex, setColorIndex] = useState(0);
 
@@ -34,6 +35,14 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
 
     const currentWish = wishes[currentIndex];
 
+    // Call onSpecialMessageShown when the first card is viewed
+    useEffect(() => {
+        if (currentIndex === 0 && onSpecialMessageShown) {
+            onSpecialMessageShown();
+        }
+    }, [currentIndex, onSpecialMessageShown]);
+
+    // Cycle colors when currentIndex changes
     useEffect(() => {
         setColorIndex((prev) => (prev + 1) % cardColors.length);
     }, [currentIndex]);
@@ -100,6 +109,13 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
             >
                 {/* SOLID gradient background */}
                 <div className={`bg-gradient-to-br ${cardColors[colorIndex]} rounded-2xl shadow-2xl overflow-hidden border-2 border-white/50`}>
+                    {/* Special message badge for first card */}
+                    {currentIndex === 0 && currentWish.id === 'special-message' && (
+                        <div className="absolute top-2 left-2 bg-yellow-300 text-xs px-2 py-1 rounded-full z-10">
+                            💝 Special Message
+                        </div>
+                    )}
+
                     {/* Semi-transparent overlay for text readability */}
                     <div className="p-6 bg-black/20 backdrop-blur-[2px]">
                         <h3 className="text-xl font-bold text-[#d45673ff] mb-2 drop-shadow-lg">
@@ -146,7 +162,6 @@ export default function SwipeWishViewer({ wishes, onClose }: SwipeWishViewerProp
                     >
                         ← Previous • Next →
                     </div>
-
                 </div>
             </motion.div>
 
