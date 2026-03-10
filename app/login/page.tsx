@@ -123,14 +123,25 @@ function LoginForm() {
         setMessage('');
 
         try {
+            // Debug logging
+            console.log('🔐 FORGOT PASSWORD DEBUG:');
+            console.log('Email:', email);
+            console.log('Origin:', window.location.origin);
+
+            const redirectUrl = `${window.location.origin}/reset-password`;
+            console.log('Redirect URL:', redirectUrl);
+
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/reset-password`,
+                redirectTo: redirectUrl,
             });
+
+            console.log('Supabase response:', { error });
 
             if (error) throw error;
 
             setMessage('Password reset link sent! Check your email (including spam).');
         } catch (error: any) {
+            console.error('Reset error:', error);
             setError(error.message || 'Failed to send reset email');
         } finally {
             setLoading(false);

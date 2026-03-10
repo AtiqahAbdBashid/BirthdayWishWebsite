@@ -17,118 +17,93 @@ export default function ResetPasswordPage() {
     const [passwordMatch, setPasswordMatch] = useState(true);
     const [isValidSession, setIsValidSession] = useState(false);
     const [checking, setChecking] = useState(true);
+    const [debugInfo, setDebugInfo] = useState<any>({});
 
     const router = useRouter();
     const supabase = createClient();
 
     useEffect(() => {
         const handleResetPassword = async () => {
+            const debug: any = {
+                step1: 'Component mounted',
+                url: window.location.href,
+                hash: window.location.hash,
+                search: window.location.search,
+            };
+
             try {
-                console.log('1. Reset page mounted');
-                console.log('2. Full URL:', window.location.href);
-                console.log('3. Hash:', window.location.hash);
+                console.log('🔍 RESET PAGE DEBUG:');
+                console.log('Full URL:', window.location.href);
+                console.log('Hash:', window.location.hash);
+                console.log('Search:', window.location.search);
 
                 // Check if there's a session first
                 const { data: { session } } = await supabase.auth.getSession();
-                console.log('4. Existing session:', session);
+                debug.existingSession = session ? 'Yes' : 'No';
+                console.log('Existing session:', session);
 
                 if (session) {
-                    console.log('5. Session found - user is authenticated');
+                    console.log('Session found - showing form');
                     setIsValidSession(true);
                     setChecking(false);
                     return;
                 }
 
-                // Check URL for tokens
-                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                // Parse URL hash
+                const hashString = window.location.hash.substring(1);
+                debug.hashString = hashString;
+
+                const hashParams = new URLSearchParams(hashString);
                 const accessToken = hashParams.get('access_token');
                 const refreshToken = hashParams.get('refresh_token');
                 const type = hashParams.get('type');
+                const errorDescription = hashParams.get('error_description');
 
-                console.log('6. URL tokens:', { accessToken, refreshToken, type });
+                debug.tokens = { accessToken, refreshToken, type, errorDescription };
 
-                if (accessToken && type === 'recovery') {
-                    console.log('7. Recovery token found, setting session...');
+                console.log('Parsed hash params:', { accessToken, refreshToken, type, errorDescription });
 
-                    // Set the session with the tokens
+                if (errorDescription) {
+                    debug.error = errorDescription;
+                    setError(`Link error: ${errorDescription}`);
+                    setTimeout(() => router.push('/login'), 3000);
+                }
+                else if (accessToken && type === 'recovery') {
+                    console.log('Recovery token found, setting session...');
+
                     const { error: sessionError } = await supabase.auth.setSession({
                         access_token: accessToken,
                         refresh_token: refreshToken || '',
                     });
 
                     if (sessionError) {
-                        console.error('8. Session error:', sessionError);
+                        console.error('Session error:', sessionError);
+                        debug.sessionError = sessionError;
                         setError('Invalid or expired reset link. Please request a new one.');
                         setTimeout(() => router.push('/login'), 3000);
                     } else {
-                        console.log('9. Session set successfully');
+                        console.log('Session set successfully');
                         setIsValidSession(true);
                     }
                 } else {
-                    console.log('10. No valid recovery token found');
+                    console.log('No valid recovery token found');
+                    debug.noTokenReason = accessToken ? 'wrong type' : 'no token';
                     setError('Invalid or expired reset link. Please request a new one.');
                     setTimeout(() => router.push('/login'), 3000);
                 }
             } catch (err) {
-                console.error('11. Unexpected error:', err);
+                console.error('Unexpected error:', err);
+                debug.catchError = err;
                 setError('An error occurred. Please try again.');
                 setTimeout(() => router.push('/login'), 3000);
             } finally {
+                setDebugInfo(debug);
                 setChecking(false);
             }
         };
 
         handleResetPassword();
     }, [router, supabase]);
-
-    // Check password match
-    useEffect(() => {
-        if (confirmPassword) {
-            setPasswordMatch(password === confirmPassword);
-        } else {
-            setPasswordMatch(true);
-        }
-    }, [password, confirmPassword]);
-
-    const handleResetPassword = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (password !== confirmPassword) {
-            setError('Passwords do not match');
-            return;
-        }
-
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-        setMessage('');
-
-        try {
-            const { error } = await supabase.auth.updateUser({
-                password: password
-            });
-
-            if (error) throw error;
-
-            setMessage('Password updated successfully! Redirecting to login...');
-
-            // Sign out after password reset
-            await supabase.auth.signOut();
-
-            setTimeout(() => {
-                router.push('/login');
-            }, 2000);
-        } catch (error: any) {
-            console.error('Password update error:', error);
-            setError(error.message || 'Failed to reset password');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     if (checking) {
         return (
@@ -144,15 +119,24 @@ export default function ResetPasswordPage() {
     if (!isValidSession && !checking) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-pastel-pink/20 via-pastel-blue/20 to-pastel-yellow/20 p-4 flex items-center justify-center">
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 max-w-md text-center">
-                    <h2 className="text-2xl font-bold text-red-500 mb-4">Link Expired or Invalid</h2>
-                    <p className="text-gray-600 mb-6">This password reset link is no longer valid. Please request a new one.</p>
-                    <Link
-                        href="/login"
-                        className="inline-block px-6 py-3 bg-pastel-pink text-white rounded-lg hover:scale-105 transition-transform"
-                    >
-                        Go to Login
-                    </Link>
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 max-w-md">
+                    <h2 className="text-2xl font-bold text-red-500 mb-4 text-center">Link Expired or Invalid</h2>
+                    <p className="text-gray-600 mb-6 text-center">This password reset link is no longer valid. Please request a new one.</p>
+
+                    {/* Debug info - remove after testing */}
+                    <div className="mt-4 p-3 bg-gray-100 rounded text-xs font-mono overflow-auto max-h-48">
+                        <p className="font-bold mb-2">Debug Info:</p>
+                        <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+                    </div>
+
+                    <div className="flex justify-center mt-4">
+                        <Link
+                            href="/login"
+                            className="px-6 py-3 bg-pastel-pink text-white rounded-lg hover:scale-105 transition-transform"
+                        >
+                            Go to Login
+                        </Link>
+                    </div>
                 </div>
             </div>
         );
@@ -177,7 +161,16 @@ export default function ResetPasswordPage() {
                         Enter your new password below
                     </p>
 
+                    {/* Debug info - remove after testing */}
+                    <div className="mb-4 p-2 bg-gray-100 rounded text-xs font-mono">
+                        <details>
+                            <summary className="cursor-pointer">Debug Info</summary>
+                            <pre className="mt-2 overflow-auto">{JSON.stringify(debugInfo, null, 2)}</pre>
+                        </details>
+                    </div>
+
                     <form onSubmit={handleResetPassword} className="space-y-5">
+                        {/* ... rest of your form ... */}
                         <div>
                             <label className="block text-sm font-medium text-gray-800 mb-2">
                                 New Password *
