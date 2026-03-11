@@ -146,16 +146,16 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                         </p>
                                     </div>
 
-                                    {/* Photo Section with exact dimensions */}
+                                    {/* Photo Section - Original untouched photo */}
                                     <div className="flex flex-col items-center my-8">
-                                        <div className="w-80 h-60 overflow-hidden rounded-lg shadow-xl border-2 border-pastel-pink/30">
+                                        <div className="max-w-full overflow-hidden rounded-lg shadow-xl border-2 border-pastel-pink/30">
                                             <img
                                                 src="/images/thephoto.jpg"
                                                 alt="You and Lynda"
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-auto"
                                                 onError={(e) => {
                                                     console.error('Photo failed to load');
-                                                    e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Photo+unavailable';
+                                                    e.currentTarget.src = 'https://via.placeholder.com/800x600?text=Photo+unavailable';
                                                 }}
                                             />
                                         </div>
