@@ -28,7 +28,7 @@ function DashboardContent() {
     const [activeTab, setActiveTab] = useState<'all' | 'text' | 'media'>('all');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedImageName, setSelectedImageName] = useState<string>('');
-    const [showLetter, setShowLetter] = useState(true);
+    const [showLetter, setShowLetter] = useState(false);
     const [showFlashcards, setShowFlashcards] = useState(false);
     const [showSpecialMessage, setShowSpecialMessage] = useState(true);
     const { setButtonPosition } = useMusic();
@@ -37,8 +37,6 @@ function DashboardContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClient();
-
-
 
     useEffect(() => {
         const auth = sessionStorage.getItem('lyndaAuth');
@@ -159,9 +157,9 @@ We love you! 💕 - Atiqah`,
     const handleFlashcardComplete = () => {
         console.log('🎴 Flashcards completed');
         setShowFlashcards(false);
+        // Show letter after flashcards
         setTimeout(() => {
-            console.log('⏰ Opening swipe view');
-            setShowSwipeView(true);
+            setShowLetter(true);
         }, 500);
     };
 
@@ -177,27 +175,22 @@ We love you! 💕 - Atiqah`,
                 backgroundColor: '#ce6e84ff',
             }}
         >
-            {showLetter && (
-                <BirthdayLetter onOpen={() => setShowLetter(false)} />
-            )}
+            {/* Letter Component - ALWAYS rendered, controlled by isOpen prop */}
+            <BirthdayLetter
+                isOpen={showLetter}
+                onClose={() => setShowLetter(false)}
+            />
 
-            {!showLetter && showFlashcards && (
-                <BirthdayFlashcards
-                    onComplete={() => {
-                        setShowFlashcards(false);
-                        setTimeout(() => setShowSwipeView(true), 500);
-                    }}
-                />
-            )}
-
-            {showFlashcards && (
+            {/* Flashcards - only shown when showFlashcards is true AND letter is not open */}
+            {showFlashcards && !showLetter && (
                 <BirthdayFlashcards
                     onComplete={handleFlashcardComplete}
                 />
             )}
+
             <MusicButton />
 
-            <div className={`min-h-screen bg-white/40 backdrop-blur-[1px] transition-all duration-300 ${showFlashcards ? 'blur-sm pointer-events-none' : ''
+            <div className={`min-h-screen bg-white/40 backdrop-blur-[1px] transition-all duration-300 ${showFlashcards || showLetter ? 'blur-sm pointer-events-none' : ''
                 }`}>
                 <header className="bg-white/90 backdrop-blur-sm shadow-sm sticky top-0 z-10">
                     <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -269,16 +262,22 @@ We love you! 💕 - Atiqah`,
                         </div>
                     </div>
 
-                    <div className="flex justify-center mb-4">
+                    <div className="flex justify-center gap-4 mb-4">
                         <button
                             onClick={() => {
-                                console.log('🔴 Button clicked! showSwipeView was:', showSwipeView);
                                 setShowSwipeView(true);
                                 console.log('✅ showSwipeView set to true');
                             }}
                             className="px-6 py-3 bg-[#dca5b2ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 border-2 border-white/50"
                         >
                             View Wishes as Cards
+                        </button>
+
+                        <button
+                            onClick={() => setShowLetter(true)}
+                            className="px-6 py-3 bg-[#dca5b2ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 border-2 border-white/50"
+                        >
+                            💌 Atiqah's Letter
                         </button>
                     </div>
 
