@@ -858,7 +858,9 @@ export default function WishPage() {
                                                 {wishType === 'image' ? (
                                                     <img src={filePreview} alt="Preview" className="max-h-48 mx-auto rounded-lg" />
                                                 ) : (
-                                                    <video src={filePreview} className="max-h-48 mx-auto rounded-lg" controls />
+                                                    <video src={filePreview} className="max-h-48 mx-auto rounded-lg" controls
+                                                        style={{ objectFit: 'contain' }}  // ← Add this inline style
+                                                    />
                                                 )}
                                                 <button
                                                     type="button"

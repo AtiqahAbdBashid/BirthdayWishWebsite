@@ -137,7 +137,10 @@ export default function SwipeWishViewer({ wishes, onClose, onSpecialMessageShown
                                     <video
                                         src={currentWish.file_url}
                                         controls
-                                        className="w-full h-64 object-cover rounded-lg"
+                                        className="w-full h-48 object-contain"
+                                        onError={(e) => {
+                                            console.error('Video failed to load:', currentWish.file_url);
+                                        }}
                                     />
                                 )}
                             </div>
