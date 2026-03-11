@@ -146,9 +146,9 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                         </p>
                                     </div>
 
-                                    {/* Photo Section - Original untouched photo */}
+                                    {/* Photo Section - Smaller with max width */}
                                     <div className="flex flex-col items-center my-8">
-                                        <div className="max-w-full overflow-hidden rounded-lg shadow-xl border-2 border-pastel-pink/30">
+                                        <div className="max-w-sm md:max-w-md overflow-hidden rounded-lg shadow-xl border-2 border-pastel-pink/30">
                                             <img
                                                 src="/images/thephoto.jpg"
                                                 alt="You and Lynda"
