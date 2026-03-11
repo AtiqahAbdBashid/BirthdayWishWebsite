@@ -17,6 +17,14 @@ module.exports = {
             },
         },
     },
+    theme: {
+        extend: {
+            fontFamily: {
+                'great-vibes': ['Great Vibes', 'cursive'],
+                'cormorant': ['Cormorant Garamond', 'serif'],
+            },
+        },
+    },
     plugins: [],
 }
 

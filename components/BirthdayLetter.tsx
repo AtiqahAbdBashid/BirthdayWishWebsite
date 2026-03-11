@@ -14,7 +14,6 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
 
     useEffect(() => {
         if (isOpen) {
-            // After opening animation completes, mark as fully open
             const timer = setTimeout(() => setIsFullyOpen(true), 800);
             return () => clearTimeout(timer);
         } else {
@@ -37,7 +36,7 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
 
                     {/* Letter Container */}
                     <motion.div
-                        className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-lg shadow-2xl overflow-hidden"
+                        className="relative w-full max-w-3xl max-h-[90vh] bg-[#fdfaf6] rounded-lg shadow-2xl overflow-hidden border border-[#e8d9c5]"
                         initial={{ scale: 0.3, y: 100, rotateX: -90 }}
                         animate={{ scale: 1, y: 0, rotateX: 0 }}
                         exit={{ scale: 0.3, y: 100, rotateX: -90 }}
@@ -52,22 +51,32 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                         {/* Close button */}
                         <button
                             onClick={onClose}
-                            className="absolute top-4 right-4 z-10 text-gray-500 hover:text-gray-700 transition-colors"
+                            className="absolute top-4 right-4 z-10 text-gray-500 hover:text-gray-700 transition-colors bg-white/80 rounded-full p-1"
                         >
-                            <X size={24} />
+                            <X size={20} />
                         </button>
 
                         {/* Letter Content - Scrollable */}
                         <div className="h-full max-h-[90vh] overflow-y-auto p-8 md:p-12">
-                            {/* Envelope Flap Animation */}
+                            {/* Decorative corner elements - replaces the white round thing */}
+                            <div className="absolute top-6 left-6 w-12 h-12 border-t-2 border-l-2 border-pastel-pink/30 rounded-tl-lg" />
+                            <div className="absolute top-6 right-6 w-12 h-12 border-t-2 border-r-2 border-pastel-pink/30 rounded-tr-lg" />
+                            <div className="absolute bottom-6 left-6 w-12 h-12 border-b-2 border-l-2 border-pastel-pink/30 rounded-bl-lg" />
+                            <div className="absolute bottom-6 right-6 w-12 h-12 border-b-2 border-r-2 border-pastel-pink/30 rounded-br-lg" />
+
+                            {/* Envelope Flap Animation - removed the white round thing */}
                             <motion.div
                                 className="relative mb-8"
                                 initial={{ y: -50, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.5, duration: 0.5 }}
                             >
-                                <div className="w-24 h-24 mx-auto bg-gradient-to-br from-pastel-pink to-pastel-blue rounded-full flex items-center justify-center shadow-xl">
-                                    <Heart className="w-12 h-12 text-white" fill="white" />
+                                <div className="w-20 h-20 mx-auto mb-4">
+                                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                                        <polygon points="50,10 90,40 50,70 10,40" fill="#FFD1DC" opacity="0.3" />
+                                        <polygon points="50,10 90,40 50,70 10,40" stroke="#A7C7E7" strokeWidth="2" fill="none" />
+                                        <circle cx="50" cy="40" r="8" fill="#FFD1DC" className="animate-pulse" />
+                                    </svg>
                                 </div>
                             </motion.div>
 
@@ -78,12 +87,12 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                 transition={{ delay: 0.8, duration: 0.5 }}
                                 className="space-y-6"
                             >
-                                <h1 className="font-dancing text-5xl md:text-6xl text-center text-pastel-pink mb-8">
+                                <h1 className="font-['Great_Vibes'] text-5xl md:text-6xl text-center text-pastel-pink mb-8">
                                     Dear Lynda,
                                 </h1>
 
-                                <div className="space-y-4 text-gray-700 font-dancing text-lg md:text-xl leading-relaxed">
-                                    <p>
+                                <div className="space-y-4 text-gray-700 font-['Cormorant_Garamond'] text-lg md:text-xl leading-relaxed text-justify">
+                                    <p className="first-letter:text-4xl first-letter:text-pastel-pink first-letter:mr-1 first-letter:float-left">
                                         As I am writing this, I am actually crying. What was initially just another project in my portfolio,
                                         now it became a core memory.
                                     </p>
@@ -104,7 +113,7 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                     </p>
 
                                     <p>
-                                        If by this project didnt tell you enough how much I appreciate you, then maybe this letter will.
+                                        If by this project didn't tell you enough how much I appreciate you, then maybe this letter will.
                                         I love you, and certainly miss you very much. I hope everything will be better soon, and that
                                         I can see you again Inshallah. I am so excited for your future; to see you be successful and still
                                         be the humble person I know of you. I pray for you, may Allah bless you with all the blessing in the world.
@@ -122,13 +131,13 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                     </p>
 
                                     <div className="pt-6 text-right">
-                                        <p className="text-2xl font-bold text-pastel-pink">
+                                        <p className="text-2xl font-['Great_Vibes'] text-pastel-pink">
                                             With all my heart,
                                         </p>
-                                        <p className="text-xl text-gray-600">
+                                        <p className="text-xl text-gray-600 font-['Cormorant_Garamond']">
                                             Atiqah 💕
                                         </p>
-                                        <p className="text-sm text-gray-400 mt-2">
+                                        <p className="text-sm text-gray-400 mt-2 font-['Cormorant_Garamond']">
                                             {new Date().toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
@@ -145,8 +154,8 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                     <div className="w-12 h-px bg-pastel-pink/30" />
                                 </div>
 
-                                <p className="text-center text-sm text-gray-400 italic">
-                                    "A friend is someone who knows the song in your heart and can sing it back to you when you have forgotten the words."
+                                <p className="text-center text-sm text-gray-400 italic font-['Cormorant_Garamond']">
+                                    "Your favourite Malaysian Abla."
                                 </p>
                             </motion.div>
                         </div>
