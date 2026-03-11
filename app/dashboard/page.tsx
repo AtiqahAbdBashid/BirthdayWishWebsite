@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { LogOut, Heart, Film, MessageCircle, X } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '../../lib/supabase/client';
+import BirthdayLetter from '@/components/BirthdayLetter';
 import BirthdayFlashcards from '@/components/BirthdayFlashcards';
 import { useMusic } from '@/context/MusicContext';
 import MusicButton from '@/components/MusicButton';
@@ -27,6 +28,7 @@ function DashboardContent() {
     const [activeTab, setActiveTab] = useState<'all' | 'text' | 'media'>('all');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedImageName, setSelectedImageName] = useState<string>('');
+    const [showLetter, setShowLetter] = useState(true);
     const [showFlashcards, setShowFlashcards] = useState(false);
     const [showSpecialMessage, setShowSpecialMessage] = useState(true);
     const { setButtonPosition } = useMusic();
@@ -35,6 +37,8 @@ function DashboardContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClient();
+
+
 
     useEffect(() => {
         const auth = sessionStorage.getItem('lyndaAuth');
@@ -173,6 +177,19 @@ We love you! 💕 - Atiqah`,
                 backgroundColor: '#ce6e84ff',
             }}
         >
+            {showLetter && (
+                <BirthdayLetter onOpen={() => setShowLetter(false)} />
+            )}
+
+            {!showLetter && showFlashcards && (
+                <BirthdayFlashcards
+                    onComplete={() => {
+                        setShowFlashcards(false);
+                        setTimeout(() => setShowSwipeView(true), 500);
+                    }}
+                />
+            )}
+
             {showFlashcards && (
                 <BirthdayFlashcards
                     onComplete={handleFlashcardComplete}
