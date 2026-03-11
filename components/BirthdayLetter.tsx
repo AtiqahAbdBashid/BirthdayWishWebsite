@@ -94,22 +94,22 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                 <div className="space-y-4 text-gray-700 font-['Cormorant_Garamond'] text-lg md:text-xl leading-relaxed text-justify">
                                     <p className="first-letter:text-4xl first-letter:text-pastel-pink first-letter:mr-1 first-letter:float-left">
                                         As I am writing this, I am actually crying. What was initially just another project in my portfolio,
-                                        now it became a core memory.
+                                        now it became a core memory. At least now I know these tears will clear my acne.
                                     </p>
 
                                     <p>
                                         As I was developing this website as a surprise for you, I came to realize how lucky I am
                                         to get to know you as a person and to be friends with you. How supportive your environment is,
-                                        how incredible of a person you are. That the moment I let them know of this secret project
+                                        how incredible of a person you are, that the moment I let them know of this secret project
                                         I am working on, they all jump in to contribute.
                                     </p>
 
                                     <p>
                                         I had the chance to contact a family member of yours, to ask the participation of those people
                                         you know from back home. And as I expected, they did not say no. And as the wishes come flooding in,
-                                        I cant hold back my tears. It made me feel incredibly lucky to have you in my orbit.
+                                        I cant stop myself from being moved by the love surrounding you. It made me feel incredibly lucky to have you in my orbit.
                                         Because if these are the people that appreciates you, you must have been an amazing person, Mashallah.
-                                        One that is blessed with an amazing circle of family and friends.
+                                        One that is blessed with an amazing circle of family and friends Alhamdulillah
                                     </p>
 
                                     <p>
