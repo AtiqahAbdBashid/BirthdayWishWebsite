@@ -29,6 +29,7 @@ function DashboardContent() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedImageName, setSelectedImageName] = useState<string>('');
     const [showLetter, setShowLetter] = useState(false);
+    const [letterFromFlashcard, setLetterFromFlashcard] = useState(false);
     const [showFlashcards, setShowFlashcards] = useState(false);
     const [showSpecialMessage, setShowSpecialMessage] = useState(true);
     const { setButtonPosition } = useMusic();
@@ -149,7 +150,7 @@ We love you! 💕 - Atiqah`,
 
     const handleFlashcardComplete = () => {
         setShowFlashcards(false);
-        // Show letter after flashcards
+        setLetterFromFlashcard(true);
         setTimeout(() => {
             setShowLetter(true);
         }, 500);
@@ -172,10 +173,13 @@ We love you! 💕 - Atiqah`,
                 isOpen={showLetter}
                 onClose={() => {
                     setShowLetter(false);
-                    // Auto-open swipe view after letter closes
-                    setTimeout(() => {
-                        setShowSwipeView(true);
-                    }, 300);
+
+                    if (letterFromFlashcard) {
+                        setTimeout(() => {
+                            setShowSwipeView(true);
+                        }, 300);
+                        setLetterFromFlashcard(false); // Reset the flag
+                    }
                 }}
             />
 
@@ -269,10 +273,13 @@ We love you! 💕 - Atiqah`,
                         </button>
 
                         <button
-                            onClick={() => setShowLetter(true)}
+                            onClick={() => {
+                                setLetterFromFlashcard(false);
+                                setShowLetter(true);
+                            }}
                             className="px-6 py-3 bg-[#dca5b2ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 border-2 border-white/50"
                         >
-                            💌 Atiqah's Letter
+                            Atiqah's Letter
                         </button>
                     </div>
 
