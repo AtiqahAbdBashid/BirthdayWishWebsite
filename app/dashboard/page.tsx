@@ -116,19 +116,12 @@ We love you! 💕 - Atiqah`,
     // Define allWishesForSwipe HERE
     const allWishesForSwipe = [specialWish, ...filteredWishes];
 
-    // ✅ MOVED THIS useEffect HERE - AFTER allWishesForSwipe is defined
+    // Track swipe view for analytics (keeping essential logs)
     useEffect(() => {
-        console.log('🔄 showSwipeView changed to:', showSwipeView);
         if (showSwipeView) {
-            console.log('📦 Wishes for swipe:', allWishesForSwipe);
-            console.log('🎯 First wish:', allWishesForSwipe[0]);
+            console.log('📦 Swipe viewer opened with', allWishesForSwipe.length, 'wishes');
         }
     }, [showSwipeView, allWishesForSwipe]);
-
-    // After defining allWishesForSwipe
-    console.log('showSwipeView:', showSwipeView);
-    console.log('allWishesForSwipe length:', allWishesForSwipe.length);
-    console.log('First wish:', allWishesForSwipe[0]);
 
     if (!isAuthenticated || loading) {
         return (
@@ -155,7 +148,6 @@ We love you! 💕 - Atiqah`,
     }
 
     const handleFlashcardComplete = () => {
-        console.log('🎴 Flashcards completed');
         setShowFlashcards(false);
         // Show letter after flashcards
         setTimeout(() => {
@@ -179,20 +171,12 @@ We love you! 💕 - Atiqah`,
             <BirthdayLetter
                 isOpen={showLetter}
                 onClose={() => {
-                    console.log('🔴 Letter closing...');
-                    console.log('showLetter before:', showLetter);
                     setShowLetter(false);
-                    console.log('showLetter after set to false');
-
                     // Auto-open swipe view after letter closes
                     setTimeout(() => {
-                        console.log('⏰ Timeout fired, setting showSwipeView to true');
-                        console.log('showSwipeView before:', showSwipeView);
                         setShowSwipeView(true);
-                        console.log('showSwipeView set to true');
                     }, 300);
                 }}
-
             />
 
             {/* Flashcards - only shown when showFlashcards is true AND letter is not open */}
@@ -278,10 +262,7 @@ We love you! 💕 - Atiqah`,
 
                     <div className="flex justify-center gap-4 mb-4">
                         <button
-                            onClick={() => {
-                                setShowSwipeView(true);
-                                console.log('✅ showSwipeView set to true');
-                            }}
+                            onClick={() => setShowSwipeView(true)}
                             className="px-6 py-3 bg-[#dca5b2ff] text-white rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 border-2 border-white/50"
                         >
                             View Wishes as Cards
@@ -433,10 +414,7 @@ We love you! 💕 - Atiqah`,
             {showSwipeView && (
                 <SwipeWishViewer
                     wishes={allWishesForSwipe}
-                    onClose={() => {
-                        console.log('🔵 Swipe viewer closed');
-                        setShowSwipeView(false);
-                    }}
+                    onClose={() => setShowSwipeView(false)}
                     onSpecialMessageShown={() => setShowSpecialMessage(false)}
                 />
             )}

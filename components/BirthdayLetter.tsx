@@ -107,9 +107,9 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                     <p>
                                         I had the chance to contact a family member of yours, to ask the participation of those people
                                         you know from back home. And as I expected, they did not say no. And as the wishes come flooding in,
-                                        I cannnot hold back my tears. It made me feel incredibly lucky to have you in my orbit.
-                                        Because if these are the people that appreciates you, you must have been an amazing person.
-                                        One that is blessed with good circle, Mashallah.
+                                        I cant hold back my tears. It made me feel incredibly lucky to have you in my orbit.
+                                        Because if these are the people that appreciates you, you must have been an amazing person, Mashallah.
+                                        One that is blessed with an amazing circle of family and friends.
                                     </p>
 
                                     <p>
