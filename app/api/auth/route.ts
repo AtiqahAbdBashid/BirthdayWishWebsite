@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const CORRECT_PASSWORD = process.env.SITE_PASSWORD || 'Lynda1203@2026';
+const CORRECT_PASSWORD = process.env.SITE_PASSWORD || 'lynda1203turkiye';
 
 // Force no caching for this API route
 export const dynamic = 'force-dynamic';
