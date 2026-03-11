@@ -87,7 +87,8 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                 transition={{ delay: 0.8, duration: 0.5 }}
                                 className="space-y-6"
                             >
-                                <h1 className="font-['Great_Vibes'] text-5xl md:text-6xl text-center text-pastel-pink mb-8">
+                                <h1 className="font-['Great_Vibes'] text-5xl md:text-6xl text-center mb-8"
+                                    style={{ color: '#346ca4ff' }}>
                                     Dear Lynda,
                                 </h1>
 
@@ -178,8 +179,9 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                             </motion.div>
                         </div>
                     </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                </motion.div >
+            )
+            }
+        </AnimatePresence >
     );
 }
