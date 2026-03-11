@@ -175,10 +175,24 @@ We love you! 💕 - Atiqah`,
                 backgroundColor: '#ce6e84ff',
             }}
         >
-            {/* Letter Component - ALWAYS rendered, controlled by isOpen prop */}
+            {/* Letter Component */}
             <BirthdayLetter
                 isOpen={showLetter}
-                onClose={() => setShowLetter(false)}
+                onClose={() => {
+                    console.log('🔴 Letter closing...');
+                    console.log('showLetter before:', showLetter);
+                    setShowLetter(false);
+                    console.log('showLetter after set to false');
+
+                    // Auto-open swipe view after letter closes
+                    setTimeout(() => {
+                        console.log('⏰ Timeout fired, setting showSwipeView to true');
+                        console.log('showSwipeView before:', showSwipeView);
+                        setShowSwipeView(true);
+                        console.log('showSwipeView set to true');
+                    }, 300);
+                }}
+
             />
 
             {/* Flashcards - only shown when showFlashcards is true AND letter is not open */}
@@ -419,7 +433,10 @@ We love you! 💕 - Atiqah`,
             {showSwipeView && (
                 <SwipeWishViewer
                     wishes={allWishesForSwipe}
-                    onClose={() => setShowSwipeView(false)}
+                    onClose={() => {
+                        console.log('🔵 Swipe viewer closed');
+                        setShowSwipeView(false);
+                    }}
                     onSpecialMessageShown={() => setShowSpecialMessage(false)}
                 />
             )}
