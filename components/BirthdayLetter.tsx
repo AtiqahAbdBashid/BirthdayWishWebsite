@@ -145,6 +145,19 @@ export default function BirthdayLetter({ isOpen, onClose }: BirthdayLetterProps)
                                             })}
                                         </p>
                                     </div>
+                                    {/* Photo Section */}
+                                    <div className="flex flex-col items-center my-8">
+                                        <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden border-4 border-pastel-pink shadow-xl transform hover:scale-105 transition-transform duration-300">
+                                            <img
+                                                src="/images/thephoto.jpg"
+                                                alt="You and Lynda"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <p className="text-center text-gray-500 mt-3 font-['Cormorant_Garamond'] italic">
+                                            That time I finally got to know you a little better... 💕
+                                        </p>
+                                    </div>
                                 </div>
 
                                 {/* Decorative divider */}
