@@ -406,24 +406,25 @@ We love you! 💕 - Atiqah`,
                         <div
                             style={{
                                 position: 'fixed',
-                                top: '0',
-                                left: '0',
-                                right: '0',
-                                bottom: '0',
-                                backgroundColor: 'black',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: 'rgba(0, 0, 0, 0.95)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                zIndex: '9999999',
+                                zIndex: 999999,
                             }}
                             onClick={() => setSelectedImage(null)}
                         >
                             <div
                                 style={{
                                     position: 'relative',
-                                    maxWidth: '90%',
-                                    maxHeight: '90%',
-                                    border: '5px solid red', // Temporary red border to see the container
+                                    width: 'auto',
+                                    height: 'auto',
+                                    maxWidth: '95vw',
+                                    maxHeight: '95vh',
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
@@ -431,12 +432,14 @@ We love you! 💕 - Atiqah`,
                                     src={selectedImage}
                                     alt={selectedImageName}
                                     style={{
-                                        maxWidth: '100%',
-                                        maxHeight: '100%',
+                                        display: 'block',
+                                        maxWidth: '95vw',
+                                        maxHeight: '95vh',
                                         width: 'auto',
                                         height: 'auto',
-                                        display: 'block',
-                                        border: '5px solid lime', // Temporary green border to see the image
+                                        objectFit: 'contain',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 25px 50px -12px black',
                                     }}
                                 />
                                 <button
@@ -445,14 +448,17 @@ We love you! 💕 - Atiqah`,
                                         position: 'absolute',
                                         top: '10px',
                                         right: '10px',
-                                        background: 'white',
+                                        background: 'rgba(255,255,255,0.2)',
                                         border: 'none',
                                         borderRadius: '50%',
                                         width: '40px',
                                         height: '40px',
-                                        fontSize: '20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
                                         cursor: 'pointer',
-                                        zIndex: '10000000',
+                                        backdropFilter: 'blur(4px)',
+                                        color: 'white',
                                     }}
                                 >
                                     <X size={24} />
@@ -463,10 +469,12 @@ We love you! 💕 - Atiqah`,
                                         bottom: '20px',
                                         left: '50%',
                                         transform: 'translateX(-50%)',
-                                        background: 'rgba(0,0,0,0.7)',
+                                        background: 'rgba(0,0,0,0.5)',
                                         color: 'white',
                                         padding: '8px 16px',
-                                        borderRadius: '20px',
+                                        borderRadius: '999px',
+                                        fontSize: '14px',
+                                        backdropFilter: 'blur(4px)',
                                     }}
                                 >
                                     {selectedImageName}
