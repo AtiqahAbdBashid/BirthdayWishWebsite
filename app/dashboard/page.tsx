@@ -339,6 +339,12 @@ We love you! 💕 - Atiqah`,
                                                     <div
                                                         className="cursor-pointer group relative"
                                                         onClick={() => {
+                                                            console.log('🔍 Wish data:', {
+                                                                name: wish.name,
+                                                                type: wish.type,
+                                                                file_url: wish.file_url,
+                                                                full_wish: wish
+                                                            });
                                                             setSelectedImage(wish.file_url!);
                                                             setSelectedImageName(`Wish from ${wish.name}`);
                                                         }}
@@ -389,28 +395,30 @@ We love you! 💕 - Atiqah`,
 
                     {selectedImage && (
                         <div
-                            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300"
+                            className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4"
                             onClick={() => setSelectedImage(null)}
+                            style={{ backdropFilter: 'blur(8px)' }}
                         >
-                            <div className="relative max-w-6xl max-h-[90vh]">
+                            <div className="relative max-w-6xl max-h-[90vh] z-[10000]" onClick={(e) => e.stopPropagation()}>
                                 <img
                                     src={selectedImage}
                                     alt={selectedImageName}
                                     className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                                    onError={(e) => {
+                                        console.error('Failed to load:', selectedImage);
+                                        e.currentTarget.src = 'https://via.placeholder.com/800x600?text=Image+not+found';
+                                    }}
                                 />
                                 <button
                                     onClick={() => setSelectedImage(null)}
-                                    className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-3 transition-all transform hover:scale-110"
+                                    className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-3 transition-all transform hover:scale-110 z-[10001]"
                                     aria-label="Close"
                                 >
                                     <X size={24} className="text-white" />
                                 </button>
-                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm">
+                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm z-[10001]">
                                     {selectedImageName}
                                 </div>
-                                <p className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-white/60 text-xs">
-                                    Click anywhere outside image to close
-                                </p>
                             </div>
                         </div>
                     )}
