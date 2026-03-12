@@ -395,33 +395,57 @@ We love you! 💕 - Atiqah`,
 
                     {selectedImage && (
                         <div
-                            className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4"
+                            className="fixed inset-0 bg-black/95 z-[99999] flex items-center justify-center p-4"
                             onClick={() => setSelectedImage(null)}
-                            style={{ backdropFilter: 'blur(8px)' }}
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backdropFilter: 'blur(8px)'
+                            }}
                         >
-                            <div className="relative max-w-6xl max-h-[90vh] z-[10000]" onClick={(e) => e.stopPropagation()}>
+                            <div
+                                className="relative max-w-6xl max-h-[90vh] z-[999999]"
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
                                 <img
                                     src={selectedImage}
                                     alt={selectedImageName}
                                     className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                                    style={{
+                                        maxWidth: '90vw',
+                                        maxHeight: '90vh',
+                                        width: 'auto',
+                                        height: 'auto',
+                                        display: 'block'
+                                    }}
+                                    onLoad={() => console.log('✅ Image loaded successfully')}
                                     onError={(e) => {
-                                        console.error('Failed to load:', selectedImage);
-                                        e.currentTarget.src = 'https://via.placeholder.com/800x600?text=Image+not+found';
+                                        console.error('❌ Image failed to load:', selectedImage);
+                                        e.currentTarget.src = 'https://via.placeholder.com/800x600?text=Image+failed+to+load';
                                     }}
                                 />
                                 <button
                                     onClick={() => setSelectedImage(null)}
-                                    className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-3 transition-all transform hover:scale-110 z-[10001]"
-                                    aria-label="Close"
+                                    className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-3 transition-all transform hover:scale-110 z-[9999999]"
+                                    style={{ position: 'absolute', top: '1rem', right: '1rem' }}
                                 >
                                     <X size={24} className="text-white" />
                                 </button>
-                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm z-[10001]">
+                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm z-[9999999]">
                                     {selectedImageName}
                                 </div>
                             </div>
                         </div>
                     )}
+
                 </main>
             </div>
 
