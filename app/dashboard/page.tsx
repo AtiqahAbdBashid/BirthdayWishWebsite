@@ -336,31 +336,40 @@ We love you! 💕 - Atiqah`,
                                         {wish.file_url && (
                                             <div className="mb-4 rounded-lg overflow-hidden bg-gray-100">
                                                 {wish.type === 'image' ? (
-                                                    <div
-                                                        className="cursor-pointer group relative"
-                                                        onClick={() => {
-                                                            console.log('🔍 Wish data:', {
-                                                                name: wish.name,
-                                                                type: wish.type,
-                                                                file_url: wish.file_url,
-                                                                full_wish: wish
-                                                            });
-                                                            setSelectedImage(wish.file_url!);
-                                                            setSelectedImageName(`Wish from ${wish.name}`);
-                                                        }}
-                                                    >
-                                                        <img
-                                                            src={wish.file_url}
-                                                            alt={`Wish from ${wish.name}`}
-                                                            className="w-full h-48 object-cover group-hover:opacity-90 transition-opacity"
-                                                            onError={(e) => {
-                                                                e.currentTarget.src = 'https://via.placeholder.com/300x200?text=Image+not+available';
+                                                    <div>
+                                                        <div
+                                                            className="cursor-pointer group relative"
+                                                            onClick={() => {
+                                                                setSelectedImage(wish.file_url!);
+                                                                setSelectedImageName(`Wish from ${wish.name}`);
                                                             }}
-                                                        />
-                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
-                                                            <span className="bg-white text-pastel-pink px-3 py-1 rounded-full text-sm font-semibold">
-                                                                Click to enlarge 🔍
-                                                            </span>
+                                                        >
+                                                            <img
+                                                                src={wish.file_url}
+                                                                alt={`Wish from ${wish.name}`}
+                                                                className="w-full h-48 object-cover group-hover:opacity-90 transition-opacity"
+                                                                onError={(e) => {
+                                                                    e.currentTarget.src = 'https://via.placeholder.com/300x200?text=Image+not+available';
+                                                                }}
+                                                            />
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+                                                                <span className="bg-white text-pastel-pink px-3 py-1 rounded-full text-sm font-semibold">
+                                                                    Click to enlarge 🔍
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Fixed with non-null assertion since we already checked wish.file_url exists */}
+                                                        <div className="flex justify-center mt-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    console.log('Opening image URL:', wish.file_url);
+                                                                    window.open(wish.file_url!, '_blank');
+                                                                }}
+                                                                className="text-xs text-pastel-blue hover:underline bg-blue-50 px-3 py-1 rounded-full"
+                                                            >
+                                                                🔍 Open image in new tab
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 ) : wish.type === 'video' ? (
@@ -424,12 +433,7 @@ We love you! 💕 - Atiqah`,
                                     }}
                                     onClick={(e) => e.stopPropagation()}
                                 />
-                                <button
-                                    onClick={() => window.open(wish.file_url, '_blank')}
-                                    className="text-xs text-pastel-blue mt-1"
-                                >
-                                    Open image in new tab
-                                </button>
+
                                 <button
                                     onClick={() => setSelectedImage(null)}
                                     style={{
