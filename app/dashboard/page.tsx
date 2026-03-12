@@ -395,51 +395,73 @@ We love you! 💕 - Atiqah`,
 
                     {selectedImage && (
                         <div
-                            className="fixed inset-0 bg-black/95 z-[99999] flex items-center justify-center p-4"
-                            onClick={() => setSelectedImage(null)}
                             style={{
                                 position: 'fixed',
                                 top: 0,
                                 left: 0,
                                 right: 0,
                                 bottom: 0,
-                                backdropFilter: 'blur(8px)'
+                                backgroundColor: 'rgba(0,0,0,0.95)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                zIndex: 999999,
                             }}
+                            onClick={() => setSelectedImage(null)}
                         >
-                            <div
-                                className="relative max-w-6xl max-h-[90vh] z-[999999]"
-                                onClick={(e) => e.stopPropagation()}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
+                            <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
                                 <img
                                     src={selectedImage}
                                     alt={selectedImageName}
-                                    className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
                                     style={{
                                         maxWidth: '90vw',
                                         maxHeight: '90vh',
                                         width: 'auto',
                                         height: 'auto',
-                                        display: 'block'
+                                        objectFit: 'contain',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
                                     }}
-                                    onLoad={() => console.log('✅ Image loaded successfully')}
-                                    onError={(e) => {
-                                        console.error('❌ Image failed to load:', selectedImage);
-                                        e.currentTarget.src = 'https://via.placeholder.com/800x600?text=Image+failed+to+load';
-                                    }}
+                                    onClick={(e) => e.stopPropagation()}
                                 />
                                 <button
-                                    onClick={() => setSelectedImage(null)}
-                                    className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full p-3 transition-all transform hover:scale-110 z-[9999999]"
-                                    style={{ position: 'absolute', top: '1rem', right: '1rem' }}
+                                    onClick={() => window.open(wish.file_url, '_blank')}
+                                    className="text-xs text-pastel-blue mt-1"
                                 >
-                                    <X size={24} className="text-white" />
+                                    Open image in new tab
                                 </button>
-                                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm z-[9999999]">
+                                <button
+                                    onClick={() => setSelectedImage(null)}
+                                    style={{
+                                        position: 'absolute',
+                                        top: '10px',
+                                        right: '10px',
+                                        background: 'rgba(255,255,255,0.2)',
+                                        border: 'none',
+                                        borderRadius: '50%',
+                                        width: '40px',
+                                        height: '40px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        backdropFilter: 'blur(4px)',
+                                    }}
+                                >
+                                    <X size={24} color="white" />
+                                </button>
+                                <div style={{
+                                    position: 'absolute',
+                                    bottom: '20px',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    background: 'rgba(0,0,0,0.5)',
+                                    color: 'white',
+                                    padding: '8px 16px',
+                                    borderRadius: '999px',
+                                    fontSize: '14px',
+                                    backdropFilter: 'blur(4px)',
+                                }}>
                                     {selectedImageName}
                                 </div>
                             </div>
