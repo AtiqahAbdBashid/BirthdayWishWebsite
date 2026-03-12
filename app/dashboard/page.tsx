@@ -418,7 +418,12 @@ We love you! 💕 - Atiqah`,
                             }}
                             onClick={() => setSelectedImage(null)}
                         >
-                            <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+                            <div style={{
+                                position: 'relative',
+                                maxWidth: '90vw',
+                                maxHeight: '90vh',
+                                zIndex: 1000000,  // ← ADD THIS LINE HERE
+                            }}>
                                 <img
                                     src={selectedImage}
                                     alt={selectedImageName}
